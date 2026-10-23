@@ -1,4 +1,26 @@
 <resources>
     <string name="app_name">MiBoveda</string>
     <string name="placeholder_message">MiBoveda está en construcción</string>
+
+    <string name="onboarding_title">Crea tu bóveda</string>
+    <string name="onboarding_description">Elige una contraseña maestra. Es la única llave de tus datos: si la olvidas, no podrás recuperarlos.</string>
+    <string name="master_password_label">Contraseña maestra</string>
+    <string name="master_password_confirm_label">Repite la contraseña maestra</string>
+    <string name="show_passwords">Mostrar contraseñas</string>
+    <string name="hide_passwords">Ocultar contraseñas</string>
+    <string name="create_vault">Crear bóveda</string>
+    <string name="strength_weak">Seguridad: débil</string>
+    <string name="strength_medium">Seguridad: media</string>
+    <string name="strength_strong">Seguridad: fuerte</string>
+
+    <string name="error_wrong_master_password">La contraseña maestra es incorrecta.</string>
+    <string name="error_vault_locked">La bóveda está bloqueada.</string>
+    <string name="error_master_password_too_short">La contraseña maestra debe tener al menos %1$d caracteres.</string>
+    <string name="error_master_password_mismatch">Las contraseñas no coinciden.</string>
+    <string name="error_vault_not_created">Todavía no has creado una bóveda.</string>
+    <string name="error_vault_already_exists">Ya existe una bóveda en este dispositivo.</string>
+    <string name="error_entry_not_found">No se encontró la entrada.</string>
+    <string name="error_biometric_unavailable">La biometría no está disponible en este dispositivo.</string>
+    <string name="error_corrupt_backup">El archivo de respaldo está dañado.</string>
+    <string name="error_storage_failure">No se pudo acceder al almacenamiento. Inténtalo de nuevo.</string>
 </resources>

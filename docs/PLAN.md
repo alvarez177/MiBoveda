@@ -112,6 +112,7 @@ Reglas por paso: commits pequeños; antes de avisarte `./gradlew assembleDebug` 
 - Paso 5: Argon2id con parámetros por defecto 3 iteraciones / 64 MiB / 1 hilo. En el emulador (API 29) tarda ~310 ms; en un teléfono real será más lento. Los parámetros se guardarán en la cabecera de la bóveda, así que se pueden recalibrar sin romper bóvedas existentes. Pendiente: medir en un dispositivo físico (la prueba `logsDerivationTimeForCalibration` escribe el tiempo en logcat con la etiqueta `KdfCalibration`).
 - Paso 6: Room 2.8.5, sqlcipher-android 4.19.1 y androidx.sqlite 2.7.0 (verificadas). `VaultSession` pasa a SQLCipher una copia de la clave porque la librería borra la que recibe. El esquema se exporta a `app/schemas/` para futuras migraciones. `EntryRepository` se implementa en el paso 10.
 - Paso 7: además de `allowBackup=false` se vaciaron los archivos de reglas (`backup_rules.xml`, `data_extraction_rules.xml`) excluyendo todo, para cubrir también la transferencia entre dispositivos (API 31+). R8 queda activo en release; argon2kt no trae reglas propias y se añadió una (SQLCipher sí las trae). Verificado: el mapping de release conserva las clases de argon2kt y SQLCipher sin ofuscar.
+- Paso 8: DataStore Preferences 1.3.0 guarda la cabecera de la bóveda (versión, parámetros Argon2, sal y DEK envuelta). La contraseña maestra mínima es de 12 caracteres. `VaultRepository` solo tiene `exists` y `create`; `unlock` y `lock` se añaden en el paso 9. Limitación conocida: los campos de texto de Compose usan `String`, que no se puede borrar de memoria; el ViewModel convierte a `CharArray` para el caso de uso y lo borra al terminar, y vacía el estado cuando se crea la bóveda.
 
 ## Estado de los pasos
 Actualizar al terminar cada paso. Estados: pendiente / en progreso / hecho.
@@ -125,7 +126,7 @@ Actualizar al terminar cada paso. Estados: pendiente / en progreso / hecho.
 | 5 | feature/crypto-keys | en progreso |
 | 6 | feature/encrypted-database | hecho |
 | 7 | feature/hardening-manifest | hecho |
-| 8 | feature/create-vault | pendiente |
+| 8 | feature/create-vault | hecho |
 | 9 | feature/unlock-vault | pendiente |
 | 10 | feature/entries-crud | pendiente |
 | 11 | feature/auto-lock | pendiente |
