@@ -110,6 +110,7 @@ Reglas por paso: commits pequeños; antes de avisarte `./gradlew assembleDebug` 
 - Paso 3: Hilt 2.60.1 funciona con AGP 9.4 y KSP 2.3.12 (no hizo falta el plan B). Las carpetas `domain/`, `data/` y `di/` se crean en el primer paso que las use, para no dejar paquetes vacíos.
 - Paso 4: se añadió kotlinx-coroutines 1.11.0 (core + test), verificada en Maven Central. `outcomeOf` vive en `data/` (lo usan los repositorios) y las interfaces de repositorio son mínimas; se ajustarán en los pasos 6 y 10 si hace falta. Los casos de uso se crean junto a cada pantalla que los necesita (pasos 8–12).
 - Paso 5: Argon2id con parámetros por defecto 3 iteraciones / 64 MiB / 1 hilo. En el emulador (API 29) tarda ~310 ms; en un teléfono real será más lento. Los parámetros se guardarán en la cabecera de la bóveda, así que se pueden recalibrar sin romper bóvedas existentes. Pendiente: medir en un dispositivo físico (la prueba `logsDerivationTimeForCalibration` escribe el tiempo en logcat con la etiqueta `KdfCalibration`).
+- Paso 6: Room 2.8.5, sqlcipher-android 4.19.1 y androidx.sqlite 2.7.0 (verificadas). `VaultSession` pasa a SQLCipher una copia de la clave porque la librería borra la que recibe. El esquema se exporta a `app/schemas/` para futuras migraciones. `EntryRepository` se implementa en el paso 10.
 
 ## Estado de los pasos
 Actualizar al terminar cada paso. Estados: pendiente / en progreso / hecho.
@@ -121,7 +122,7 @@ Actualizar al terminar cada paso. Estados: pendiente / en progreso / hecho.
 | 3 | feature/app-skeleton | hecho |
 | 4 | feature/domain-core | hecho |
 | 5 | feature/crypto-keys | en progreso |
-| 6 | feature/encrypted-database | pendiente |
+| 6 | feature/encrypted-database | hecho |
 | 7 | feature/hardening-manifest | pendiente |
 | 8 | feature/create-vault | pendiente |
 | 9 | feature/unlock-vault | pendiente |
