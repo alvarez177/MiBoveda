@@ -11,7 +11,7 @@ interface EntryDao {
     fun observeAll(): Flow<List<EntryEntity>>
 
     @Query("SELECT * FROM entries WHERE id = :id")
-    suspend fun getById(id: Long): EntryEntity?
+    fun observeById(id: Long): Flow<EntryEntity?>
 
     /** Returns the new row id on insert, or -1 when an existing row was updated. */
     @Upsert

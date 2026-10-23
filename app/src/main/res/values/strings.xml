@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">MiBoveda</string>
-    <string name="placeholder_message">MiBoveda está en construcción</string>
 
     <string name="onboarding_title">Crea tu bóveda</string>
     <string name="onboarding_description">Elige una contraseña maestra. Es la única llave de tus datos: si la olvidas, no podrás recuperarlos.</string>
@@ -18,12 +17,35 @@
     <string name="strength_medium">Seguridad: media</string>
     <string name="strength_strong">Seguridad: fuerte</string>
 
+    <string name="entries_title">Mis contraseñas</string>
+    <string name="entries_empty">Aún no tienes contraseñas guardadas.\nPulsa «Añadir» para guardar la primera.</string>
+    <string name="add_entry">Añadir</string>
+    <string name="new_entry_title">Nueva contraseña</string>
+    <string name="edit_entry_title">Editar contraseña</string>
+    <string name="title_label">Título</string>
+    <string name="username_label">Usuario</string>
+    <string name="password_label">Contraseña</string>
+    <string name="url_label">Sitio web</string>
+    <string name="notes_label">Notas</string>
+    <string name="save">Guardar</string>
+    <string name="edit">Editar</string>
+    <string name="delete">Eliminar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="copy">Copiar</string>
+    <string name="show">Mostrar</string>
+    <string name="hide">Ocultar</string>
+    <string name="back">Volver</string>
+    <string name="copied_to_clipboard">Copiado. Se borrará del portapapeles en 30 segundos.</string>
+    <string name="delete_entry_title">¿Eliminar esta contraseña?</string>
+    <string name="delete_entry_message">Esta acción no se puede deshacer.</string>
+
     <string name="error_wrong_master_password">La contraseña maestra es incorrecta.</string>
     <string name="error_vault_locked">La bóveda está bloqueada.</string>
     <string name="error_master_password_too_short">La contraseña maestra debe tener al menos %1$d caracteres.</string>
     <string name="error_master_password_mismatch">Las contraseñas no coinciden.</string>
     <string name="error_vault_not_created">Todavía no has creado una bóveda.</string>
     <string name="error_vault_already_exists">Ya existe una bóveda en este dispositivo.</string>
+    <string name="error_entry_title_required">El título es obligatorio.</string>
     <string name="error_entry_not_found">No se encontró la entrada.</string>
     <string name="error_biometric_unavailable">La biometría no está disponible en este dispositivo.</string>
     <string name="error_corrupt_backup">El archivo de respaldo está dañado.</string>

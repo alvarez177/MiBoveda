@@ -114,6 +114,7 @@ Reglas por paso: commits pequeños; antes de avisarte `./gradlew assembleDebug` 
 - Paso 7: además de `allowBackup=false` se vaciaron los archivos de reglas (`backup_rules.xml`, `data_extraction_rules.xml`) excluyendo todo, para cubrir también la transferencia entre dispositivos (API 31+). R8 queda activo en release; argon2kt no trae reglas propias y se añadió una (SQLCipher sí las trae). Verificado: el mapping de release conserva las clases de argon2kt y SQLCipher sin ofuscar.
 - Paso 8: DataStore Preferences 1.3.0 guarda la cabecera de la bóveda (versión, parámetros Argon2, sal y DEK envuelta). La contraseña maestra mínima es de 12 caracteres. `VaultRepository` solo tiene `exists` y `create`; `unlock` y `lock` se añaden en el paso 9. Limitación conocida: los campos de texto de Compose usan `String`, que no se puede borrar de memoria; el ViewModel convierte a `CharArray` para el caso de uso y lo borra al terminar, y vacía el estado cuando se crea la bóveda.
 - Paso 9: una contraseña maestra incorrecta se detecta cuando falla la autenticación GCM al desenvolver la DEK (`BadPaddingException` → `WrongMasterPassword`). No hay bloqueo por intentos fallidos: Argon2id (~0,3 s en el emulador) es el freno. Si se quiere limitar intentos, sería un paso aparte. El arranque distingue bóveda inexistente / bloqueada / ya desbloqueada (proceso vivo). La navegación hacia la pantalla de desbloqueo cuando la bóveda se bloquea llega con el auto-bloqueo (paso 11).
+- Paso 10: `EntryRepository` cambió respecto al paso 4: `get(id)` se sustituye por `observe(id)` (la pantalla de detalle se actualiza sola al editar). `VaultSession` lanza `VaultLockedException` (subclase de `IllegalStateException`) cuando está bloqueada y el repositorio la traduce a `VaultLocked`. Se añadió `material-icons-core` (1.7.8, vía BOM) solo para la flecha de volver. El portapapeles se limpia 30 s después de copiar mediante un singleton con su propio scope; si el proceso muere antes, no se limpia, y se limpia siempre el contenido actual del portapapeles aunque el usuario haya copiado otra cosa después. El auto-bloqueo (paso 11) también deberá limpiarlo. La lista no tiene intents (solo muestra datos); la navegación va por callbacks.
 
 ## Estado de los pasos
 Actualizar al terminar cada paso. Estados: pendiente / en progreso / hecho.
@@ -129,7 +130,7 @@ Actualizar al terminar cada paso. Estados: pendiente / en progreso / hecho.
 | 7 | feature/hardening-manifest | hecho |
 | 8 | feature/create-vault | hecho |
 | 9 | feature/unlock-vault | hecho |
-| 10 | feature/entries-crud | pendiente |
+| 10 | feature/entries-crud | hecho |
 | 11 | feature/auto-lock | pendiente |
 | 12 | feature/biometric-unlock | pendiente |
 | 13 | feature/settings-and-polish | pendiente |
