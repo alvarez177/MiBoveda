@@ -15,7 +15,8 @@ import kotlinx.coroutines.launch
 sealed interface StartState {
     data object Loading : StartState
     data object NoVault : StartState
-    data object VaultExists : StartState
+    data object VaultLocked : StartState
+    data object VaultUnlocked : StartState
     data class Failed(val error: VaultError) : StartState
 }
 
@@ -30,7 +31,11 @@ class StartViewModel @Inject constructor(
     init {
         viewModelScope.launch {
             _state.value = when (val result = vaultRepository.exists()) {
-                is Outcome.Success -> if (result.value) StartState.VaultExists else StartState.NoVault
+                is Outcome.Success -> when {
+                    !result.value -> StartState.NoVault
+                    vaultRepository.isUnlocked.value -> StartState.VaultUnlocked
+                    else -> StartState.VaultLocked
+                }
                 is Outcome.Failure -> StartState.Failed(result.error)
             }
         }

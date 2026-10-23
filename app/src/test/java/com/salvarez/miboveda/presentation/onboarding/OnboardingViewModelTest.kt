@@ -54,7 +54,7 @@ class OnboardingViewModelTest {
 
     @Test
     fun `shows repository failures`() = runTest {
-        val vm = viewModel(FakeVaultRepository(Outcome.Failure(VaultError.StorageFailure)))
+        val vm = viewModel(FakeVaultRepository(createResult = Outcome.Failure(VaultError.StorageFailure)))
         vm.fill("a long enough password", "a long enough password")
         vm.onIntent(OnboardingIntent.Submit)
 

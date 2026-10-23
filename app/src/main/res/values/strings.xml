@@ -8,6 +8,11 @@
     <string name="master_password_confirm_label">Repite la contraseña maestra</string>
     <string name="show_passwords">Mostrar contraseñas</string>
     <string name="hide_passwords">Ocultar contraseñas</string>
+    <string name="show_password">Mostrar contraseña</string>
+    <string name="hide_password">Ocultar contraseña</string>
+    <string name="unlock_title">Desbloquea tu bóveda</string>
+    <string name="unlock_description">Introduce tu contraseña maestra para acceder a tus datos.</string>
+    <string name="unlock_vault">Desbloquear</string>
     <string name="create_vault">Crear bóveda</string>
     <string name="strength_weak">Seguridad: débil</string>
     <string name="strength_medium">Seguridad: media</string>

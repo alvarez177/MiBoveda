@@ -113,6 +113,7 @@ Reglas por paso: commits pequeños; antes de avisarte `./gradlew assembleDebug` 
 - Paso 6: Room 2.8.5, sqlcipher-android 4.19.1 y androidx.sqlite 2.7.0 (verificadas). `VaultSession` pasa a SQLCipher una copia de la clave porque la librería borra la que recibe. El esquema se exporta a `app/schemas/` para futuras migraciones. `EntryRepository` se implementa en el paso 10.
 - Paso 7: además de `allowBackup=false` se vaciaron los archivos de reglas (`backup_rules.xml`, `data_extraction_rules.xml`) excluyendo todo, para cubrir también la transferencia entre dispositivos (API 31+). R8 queda activo en release; argon2kt no trae reglas propias y se añadió una (SQLCipher sí las trae). Verificado: el mapping de release conserva las clases de argon2kt y SQLCipher sin ofuscar.
 - Paso 8: DataStore Preferences 1.3.0 guarda la cabecera de la bóveda (versión, parámetros Argon2, sal y DEK envuelta). La contraseña maestra mínima es de 12 caracteres. `VaultRepository` solo tiene `exists` y `create`; `unlock` y `lock` se añaden en el paso 9. Limitación conocida: los campos de texto de Compose usan `String`, que no se puede borrar de memoria; el ViewModel convierte a `CharArray` para el caso de uso y lo borra al terminar, y vacía el estado cuando se crea la bóveda.
+- Paso 9: una contraseña maestra incorrecta se detecta cuando falla la autenticación GCM al desenvolver la DEK (`BadPaddingException` → `WrongMasterPassword`). No hay bloqueo por intentos fallidos: Argon2id (~0,3 s en el emulador) es el freno. Si se quiere limitar intentos, sería un paso aparte. El arranque distingue bóveda inexistente / bloqueada / ya desbloqueada (proceso vivo). La navegación hacia la pantalla de desbloqueo cuando la bóveda se bloquea llega con el auto-bloqueo (paso 11).
 
 ## Estado de los pasos
 Actualizar al terminar cada paso. Estados: pendiente / en progreso / hecho.
@@ -127,7 +128,7 @@ Actualizar al terminar cada paso. Estados: pendiente / en progreso / hecho.
 | 6 | feature/encrypted-database | hecho |
 | 7 | feature/hardening-manifest | hecho |
 | 8 | feature/create-vault | hecho |
-| 9 | feature/unlock-vault | pendiente |
+| 9 | feature/unlock-vault | hecho |
 | 10 | feature/entries-crud | pendiente |
 | 11 | feature/auto-lock | pendiente |
 | 12 | feature/biometric-unlock | pendiente |
