@@ -5,6 +5,9 @@ ksp = "2.3.12"
 hilt = "2.60.1"
 coroutines = "1.11.0"
 argon2kt = "1.6.0"
+room = "2.8.5"
+sqlcipher = "4.19.1"
+androidxSqlite = "2.7.0"
 hiltNavigationCompose = "1.4.0"
 navigationCompose = "2.10.2"
 coreKtx = "1.19.1"
@@ -38,6 +41,11 @@ hilt-compiler = { group = "com.google.dagger", name = "hilt-android-compiler", v
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
 argon2kt = { group = "com.lambdapioneer.argon2kt", name = "argon2kt", version.ref = "argon2kt" }
+androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }
+androidx-room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
+androidx-room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
+sqlcipher-android = { group = "net.zetetic", name = "sqlcipher-android", version.ref = "sqlcipher" }
+androidx-sqlite = { group = "androidx.sqlite", name = "sqlite", version.ref = "androidxSqlite" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
