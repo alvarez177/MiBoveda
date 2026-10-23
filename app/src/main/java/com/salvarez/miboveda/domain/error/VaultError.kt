@@ -10,6 +10,7 @@ sealed interface VaultError {
     data object EntryNotFound : VaultError
     data object EntryTitleRequired : VaultError
     data object BiometricUnavailable : VaultError
+    data object BiometricInvalidated : VaultError
     data object CorruptBackup : VaultError
     data object StorageFailure : VaultError
 }

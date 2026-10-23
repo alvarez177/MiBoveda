@@ -3,6 +3,7 @@ package com.salvarez.miboveda.data.repository
 import android.content.Context
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.test.core.app.ApplicationProvider
+import com.salvarez.miboveda.data.VaultLockState
 import com.salvarez.miboveda.data.crypto.AesGcmKeyWrapper
 import com.salvarez.miboveda.data.crypto.Argon2KeyDerivation
 import com.salvarez.miboveda.data.db.EntryEntity
@@ -30,7 +31,9 @@ class VaultRepositoryImplTest {
     // A DataStore stays active for its file, so every test instance needs its own file.
     private val prefsFile = File(context.cacheDir, "vault_repo_test_${UUID.randomUUID()}.preferences_pb")
     private val headerStore = VaultHeaderStore(PreferenceDataStoreFactory.create { prefsFile })
-    private val repository = VaultRepositoryImpl(headerStore, derivation, wrapper, session)
+    private val repository = VaultRepositoryImpl(
+        headerStore, derivation, wrapper, DekUnwrapper(headerStore, derivation, wrapper), session, VaultLockState(),
+    )
     private val password = "a long enough password".toCharArray()
 
     @Before

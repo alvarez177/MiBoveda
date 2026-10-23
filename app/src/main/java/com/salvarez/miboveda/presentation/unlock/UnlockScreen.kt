@@ -12,11 +12,15 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
@@ -26,6 +30,8 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.salvarez.miboveda.R
 import com.salvarez.miboveda.domain.error.VaultError
+import com.salvarez.miboveda.domain.model.BiometricStatus
+import com.salvarez.miboveda.presentation.common.rememberBiometricAuthenticator
 import com.salvarez.miboveda.presentation.common.PasswordTextField
 import com.salvarez.miboveda.presentation.common.message
 import com.salvarez.miboveda.presentation.theme.MiBovedaTheme
@@ -36,11 +42,29 @@ fun UnlockRoute(
     viewModel: UnlockViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val authenticator = rememberBiometricAuthenticator()
+    val promptTitle = stringResource(R.string.biometric_prompt_title)
+    val promptNegative = stringResource(R.string.biometric_prompt_negative)
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
             when (effect) {
                 UnlockEffect.Unlocked -> onUnlocked()
+                is UnlockEffect.ShowBiometricPrompt -> authenticator.authenticate(
+                    cipher = effect.cipher,
+                    title = promptTitle,
+                    negativeButtonText = promptNegative,
+                    onSuccess = { viewModel.onIntent(UnlockIntent.BiometricApproved(it)) },
+                    onFailure = { viewModel.onIntent(UnlockIntent.BiometricFailed(it)) },
+                )
             }
+        }
+    }
+    // Offer the fingerprint right away, once; the button stays available if the user cancels.
+    var promptedAutomatically by rememberSaveable { mutableStateOf(false) }
+    LaunchedEffect(state.biometricStatus) {
+        if (state.biometricStatus == BiometricStatus.ENABLED && !promptedAutomatically) {
+            promptedAutomatically = true
+            viewModel.onIntent(UnlockIntent.BiometricClicked)
         }
     }
     UnlockScreen(state = state, onIntent = viewModel::onIntent)
@@ -71,6 +95,13 @@ fun UnlockScreen(
         )
         TextButton(onClick = { onIntent(UnlockIntent.TogglePasswordVisibility) }) {
             Text(stringResource(if (state.isPasswordVisible) R.string.hide_password else R.string.show_password))
+        }
+        if (state.biometricStatus == BiometricStatus.ENABLED) {
+            OutlinedButton(
+                onClick = { onIntent(UnlockIntent.BiometricClicked) },
+                enabled = !state.isLoading,
+                modifier = Modifier.fillMaxWidth(),
+            ) { Text(stringResource(R.string.unlock_with_biometrics)) }
         }
         state.error?.let {
             Text(it.message(), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)

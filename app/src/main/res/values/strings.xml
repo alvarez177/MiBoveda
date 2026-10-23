@@ -39,6 +39,19 @@
     <string name="delete_entry_title">¿Eliminar esta contraseña?</string>
     <string name="delete_entry_message">Esta acción no se puede deshacer.</string>
 
+    <string name="unlock_with_biometrics">Usar huella o rostro</string>
+    <string name="biometric_prompt_title">Desbloquear MiBoveda</string>
+    <string name="biometric_prompt_enable_title">Activar desbloqueo biométrico</string>
+    <string name="biometric_prompt_negative">Usar contraseña</string>
+    <string name="settings_title">Ajustes</string>
+    <string name="settings_action">Ajustes</string>
+    <string name="biometric_setting_title">Desbloqueo con huella o rostro</string>
+    <string name="biometric_setting_description">Es solo una comodidad: la contraseña maestra siempre funciona.</string>
+    <string name="biometric_setting_unavailable">Registra una huella o un rostro en los ajustes del dispositivo para poder usarlo.</string>
+    <string name="biometric_password_dialog_title">Confirma tu contraseña maestra</string>
+    <string name="biometric_password_dialog_message">Hace falta para activar el desbloqueo biométrico.</string>
+    <string name="confirm">Confirmar</string>
+
     <string name="error_wrong_master_password">La contraseña maestra es incorrecta.</string>
     <string name="error_vault_locked">La bóveda está bloqueada.</string>
     <string name="error_master_password_too_short">La contraseña maestra debe tener al menos %1$d caracteres.</string>
@@ -47,6 +60,7 @@
     <string name="error_vault_already_exists">Ya existe una bóveda en este dispositivo.</string>
     <string name="error_entry_title_required">El título es obligatorio.</string>
     <string name="error_entry_not_found">No se encontró la entrada.</string>
+    <string name="error_biometric_invalidated">Cambió la biometría registrada en el dispositivo. Desbloquea con tu contraseña y vuelve a activarla en Ajustes.</string>
     <string name="error_biometric_unavailable">La biometría no está disponible en este dispositivo.</string>
     <string name="error_corrupt_backup">El archivo de respaldo está dañado.</string>
     <string name="error_storage_failure">No se pudo acceder al almacenamiento. Inténtalo de nuevo.</string>
