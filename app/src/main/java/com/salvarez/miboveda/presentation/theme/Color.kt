@@ -1,4 +1,4 @@
-package com.salvarez.miboveda.ui.theme
+package com.salvarez.miboveda.presentation.theme
 
 import androidx.compose.ui.graphics.Color
 

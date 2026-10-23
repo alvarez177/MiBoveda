@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">MiBoveda</string>
+    <string name="placeholder_message">MiBoveda está en construcción</string>
 </resources>

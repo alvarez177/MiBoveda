@@ -25,6 +25,7 @@ El plan aprobado y el estado de cada paso están en `@docs/PLAN.md`. Léelo al e
 
 ## Stack
 - Single module `:app`, Kotlin + Jetpack Compose (Material3), Gradle Kotlin DSL with a version catalog (`gradle/libs.versions.toml`) — add dependencies there, not inline.
+- Hilt (KSP) for DI; Navigation Compose with simple string routes. Theme lives in `presentation/theme`.
 - minSdk 26, targetSdk 36, compileSdk 37 (required by the stable Compose BOM 2026.09.00), Java/jvmTarget 11. AGP 9.4.0 with built-in Kotlin 2.4.21 (no `kotlin-android` plugin), Gradle 9.6.0.
 
 ## Commands

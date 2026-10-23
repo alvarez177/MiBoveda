@@ -1,4 +1,4 @@
-package com.salvarez.miboveda.ui.theme
+package com.salvarez.miboveda.presentation.theme
 
 import android.app.Activity
 import android.os.Build
