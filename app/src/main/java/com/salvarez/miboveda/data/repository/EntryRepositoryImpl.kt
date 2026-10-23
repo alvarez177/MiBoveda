@@ -8,6 +8,7 @@ import com.salvarez.miboveda.data.db.toEntity
 import com.salvarez.miboveda.data.outcomeOf
 import com.salvarez.miboveda.domain.Outcome
 import com.salvarez.miboveda.domain.error.VaultError
+import com.salvarez.miboveda.domain.map
 import com.salvarez.miboveda.domain.model.PasswordEntry
 import com.salvarez.miboveda.domain.repository.EntryRepository
 import java.time.Instant
@@ -47,10 +48,8 @@ class EntryRepositoryImpl @Inject constructor(
         if (rowId == UPDATED_ROW) toSave.id else rowId
     }
 
-    override suspend fun delete(id: Long): Outcome<Unit> = outcomeOf(::errorFor) {
-        session.entryDao().deleteById(id)
-        Unit
-    }
+    override suspend fun delete(id: Long): Outcome<Unit> =
+        outcomeOf(::errorFor) { session.entryDao().deleteById(id) }.map { }
 
     private fun <T> observing(source: () -> Flow<T>): Flow<Outcome<T>> =
         flow<Outcome<T>> { emitAll(source().map { Outcome.Success(it) }) }

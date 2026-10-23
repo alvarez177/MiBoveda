@@ -14,6 +14,9 @@ import kotlinx.coroutines.launch
 /** Copies secrets to the clipboard and removes them again after a while. */
 interface SensitiveClipboard {
     fun copy(label: String, text: String)
+
+    /** Removes whatever the app copied (and cancels the pending automatic clear). */
+    fun clear()
 }
 
 const val CLIPBOARD_CLEAR_DELAY_MILLIS = 30_000L
@@ -42,7 +45,8 @@ class AndroidSensitiveClipboard(
         }
     }
 
-    private fun clear() {
+    override fun clear() {
+        clearJob?.cancel()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
             clipboard.clearPrimaryClip()
         } else {

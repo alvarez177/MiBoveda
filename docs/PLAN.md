@@ -66,7 +66,7 @@ di/             módulos Hilt
 | argon2kt | 1.6.0 | github lambdapioneer |
 | biometric | 1.1.0 | androidx biometric |
 | datastore-preferences | 1.3.0 | androidx versions |
-| Hilt (dagger) + androidx.hilt:hilt-navigation-compose | 2.60.1 + 1.4.0 | dagger releases / androidx hilt |
+| Hilt (dagger) + androidx.hilt:hilt-lifecycle-viewmodel-compose | 2.60.1 + 1.4.0 | dagger releases / androidx hilt |
 
 **No verificado todavía (se confirma en el paso que los use, antes de fijarlos):** kotlinx-coroutines (+test), MockK, Turbine, versiones de androidx.test; compatibilidad exacta KSP 2.3.12 ↔ Kotlin 2.4.21; si `hilt-navigation-compose` 1.4.0 exige `compileSdk` 37 (las betas lo mencionaban); comportamiento del plugin de Hilt con el Kotlin integrado de AGP 9. No se usan versiones alpha/beta/rc. `androidx.security:security-crypto` no se usa.
 
@@ -115,6 +115,7 @@ Reglas por paso: commits pequeños; antes de avisarte `./gradlew assembleDebug` 
 - Paso 8: DataStore Preferences 1.3.0 guarda la cabecera de la bóveda (versión, parámetros Argon2, sal y DEK envuelta). La contraseña maestra mínima es de 12 caracteres. `VaultRepository` solo tiene `exists` y `create`; `unlock` y `lock` se añaden en el paso 9. Limitación conocida: los campos de texto de Compose usan `String`, que no se puede borrar de memoria; el ViewModel convierte a `CharArray` para el caso de uso y lo borra al terminar, y vacía el estado cuando se crea la bóveda.
 - Paso 9: una contraseña maestra incorrecta se detecta cuando falla la autenticación GCM al desenvolver la DEK (`BadPaddingException` → `WrongMasterPassword`). No hay bloqueo por intentos fallidos: Argon2id (~0,3 s en el emulador) es el freno. Si se quiere limitar intentos, sería un paso aparte. El arranque distingue bóveda inexistente / bloqueada / ya desbloqueada (proceso vivo). La navegación hacia la pantalla de desbloqueo cuando la bóveda se bloquea llega con el auto-bloqueo (paso 11).
 - Paso 10: `EntryRepository` cambió respecto al paso 4: `get(id)` se sustituye por `observe(id)` (la pantalla de detalle se actualiza sola al editar). `VaultSession` lanza `VaultLockedException` (subclase de `IllegalStateException`) cuando está bloqueada y el repositorio la traduce a `VaultLocked`. Se añadió `material-icons-core` (1.7.8, vía BOM) solo para la flecha de volver. El portapapeles se limpia 30 s después de copiar mediante un singleton con su propio scope; si el proceso muere antes, no se limpia, y se limpia siempre el contenido actual del portapapeles aunque el usuario haya copiado otra cosa después. El auto-bloqueo (paso 11) también deberá limpiarlo. La lista no tiene intents (solo muestra datos); la navegación va por callbacks.
+- Paso 11: el tiempo de auto-bloqueo (`AutoLockTimeout`: inmediato por defecto, 30 s, 1 min, 5 min) ya se guarda en DataStore y lo lee `AutoLockController`, pero la pantalla para cambiarlo llega en el paso 13. Usa `ProcessLifecycleOwner` (`lifecycle-process` 2.11.0): el sistema lo detiene ~0,7 s después de que la última actividad pasa a segundo plano, así que «inmediato» no es literal. Se combinan un temporizador con la app viva y una comprobación con reloj monotónico al volver. Al bloquear se cierra la BD, se limpia el portapapeles y la navegación vuelve a la pantalla de desbloqueo vaciando la pila (se pierde lo que estuviera sin guardar en un formulario). `hilt-navigation-compose` quedó obsoleto en 1.4.0: se usa `hilt-lifecycle-viewmodel-compose` 1.4.0.
 
 ## Estado de los pasos
 Actualizar al terminar cada paso. Estados: pendiente / en progreso / hecho.
@@ -131,7 +132,7 @@ Actualizar al terminar cada paso. Estados: pendiente / en progreso / hecho.
 | 8 | feature/create-vault | hecho |
 | 9 | feature/unlock-vault | hecho |
 | 10 | feature/entries-crud | hecho |
-| 11 | feature/auto-lock | pendiente |
+| 11 | feature/auto-lock | hecho |
 | 12 | feature/biometric-unlock | pendiente |
 | 13 | feature/settings-and-polish | pendiente |
 | 14 | feature/recovery-key | pendiente |
