@@ -34,8 +34,8 @@ El plan aprobado y el estado de cada paso están en `@docs/PLAN.md`. Léelo al e
 - Lint (no custom lint config): `./gradlew :app:lintDebug`
 
 ## Security gotchas
-This app will store secrets, so the template defaults need attention:
-- Manifest has `allowBackup="true"` with stock `backup_rules.xml` / `data_extraction_rules.xml`; exclude vault data from backups before storing anything.
-- `FLAG_SECURE` is not set on any window.
-- Release build has `isMinifyEnabled = false` and no `signingConfigs`.
+This app stores secrets:
+- Backup is disabled: `allowBackup="false"` plus explicit excludes in `backup_rules.xml` and `data_extraction_rules.xml`. Do not relax them.
+- `MainActivity` sets `FLAG_SECURE` (no screenshots or recents thumbnail); keep it on any new window or activity.
+- Release builds use R8 (`isMinifyEnabled`, `isShrinkResources`). argon2kt is kept via `proguard-rules.pro`; SQLCipher ships its own rules. Release is unsigned (no `signingConfigs`).
 - `local.properties`, `*.jks`, and `*.keystore` are gitignored; never commit keys or secrets.
