@@ -105,13 +105,16 @@ Reglas por paso: commits pequeños; antes de avisarte `./gradlew assembleDebug` 
 - KDF: Argon2id aprobado.
 - Si el upgrade a AGP 9 da problemas con Hilt, preguntar al usuario antes de aplicar el plan B (versiones compatibles con AGP 8.x).
 
+## Notas de ejecución
+- Paso 2: las librerías estables actuales (Compose 1.12.1, core 1.19.1, lifecycle 2.11.0) exigen `compileSdk = 37`; `targetSdk` sigue en 36. El plugin KSP queda declarado en el catálogo pero se aplicará cuando se use (Hilt en el paso 3, Room en el 6).
+
 ## Estado de los pasos
 Actualizar al terminar cada paso. Estados: pendiente / en progreso / hecho.
 
 | # | Rama | Estado |
 |---|---|---|
 | 1 | feature/docs-plan | hecho |
-| 2 | feature/toolchain-update | pendiente |
+| 2 | feature/toolchain-update | hecho |
 | 3 | feature/app-skeleton | pendiente |
 | 4 | feature/domain-core | pendiente |
 | 5 | feature/crypto-keys | pendiente |
