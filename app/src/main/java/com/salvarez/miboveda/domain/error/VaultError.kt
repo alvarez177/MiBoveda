@@ -3,6 +3,8 @@ package com.salvarez.miboveda.domain.error
 sealed interface VaultError {
     data object WrongMasterPassword : VaultError
     data object VaultLocked : VaultError
+    data object MasterPasswordTooShort : VaultError
+    data object MasterPasswordMismatch : VaultError
     data object VaultNotCreated : VaultError
     data object VaultAlreadyExists : VaultError
     data object EntryNotFound : VaultError

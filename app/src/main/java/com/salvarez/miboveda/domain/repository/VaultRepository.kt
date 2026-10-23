@@ -8,11 +8,6 @@ interface VaultRepository {
 
     suspend fun exists(): Outcome<Boolean>
 
-    /** The caller owns [masterPassword] and may clear it once the call returns. */
+    /** Creates the vault and leaves it unlocked. The caller owns [masterPassword] and may clear it afterwards. */
     suspend fun create(masterPassword: CharArray): Outcome<Unit>
-
-    /** The caller owns [masterPassword] and may clear it once the call returns. */
-    suspend fun unlock(masterPassword: CharArray): Outcome<Unit>
-
-    suspend fun lock()
 }
