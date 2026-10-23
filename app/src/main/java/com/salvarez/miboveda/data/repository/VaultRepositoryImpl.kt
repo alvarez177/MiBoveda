@@ -13,6 +13,7 @@ import com.salvarez.miboveda.data.settings.VaultHeaderStore
 import com.salvarez.miboveda.domain.Outcome
 import com.salvarez.miboveda.domain.error.VaultError
 import com.salvarez.miboveda.domain.repository.VaultRepository
+import javax.crypto.BadPaddingException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.Dispatchers
@@ -54,4 +55,36 @@ class VaultRepositoryImpl @Inject constructor(
             unlocked.value = true
         }
     }
+
+    override suspend fun unlock(masterPassword: CharArray): Outcome<Unit> {
+        val header = when (val result = outcomeOf { headerStore.read() }) {
+            is Outcome.Failure -> return result
+            is Outcome.Success -> result.value ?: return Outcome.Failure(VaultError.VaultNotCreated)
+        }
+        return outcomeOf(mapError = ::unlockError) {
+            val kek = withContext(Dispatchers.Default) {
+                keyDerivation.derive(masterPassword, header.salt, header.kdfParams)
+            }
+            val dek = try {
+                keyWrapper.unwrap(kek, header.wrappedDek)
+            } finally {
+                kek.fill(0)
+            }
+            try {
+                session.open(dek)
+            } finally {
+                dek.fill(0)
+            }
+            unlocked.value = true
+        }
+    }
+
+    override suspend fun lock() {
+        session.close()
+        unlocked.value = false
+    }
+
+    // A wrong master password shows up as an authentication failure when unwrapping the database key.
+    private fun unlockError(e: Exception): VaultError =
+        if (e is BadPaddingException) VaultError.WrongMasterPassword else VaultError.StorageFailure
 }

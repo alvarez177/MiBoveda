@@ -7,13 +7,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -21,15 +19,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.salvarez.miboveda.R
 import com.salvarez.miboveda.domain.model.PasswordStrength
+import com.salvarez.miboveda.presentation.common.PasswordTextField
 import com.salvarez.miboveda.presentation.common.message
 import com.salvarez.miboveda.presentation.theme.MiBovedaTheme
 
@@ -64,27 +61,22 @@ fun OnboardingScreen(
         Text(stringResource(R.string.onboarding_title), style = MaterialTheme.typography.headlineMedium)
         Text(stringResource(R.string.onboarding_description), style = MaterialTheme.typography.bodyMedium)
 
-        val transformation = if (state.isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation()
-        OutlinedTextField(
+        PasswordTextField(
             value = state.password,
             onValueChange = { onIntent(OnboardingIntent.PasswordChanged(it)) },
-            label = { Text(stringResource(R.string.master_password_label)) },
-            singleLine = true,
-            visualTransformation = transformation,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth(),
+            label = stringResource(R.string.master_password_label),
+            isVisible = state.isPasswordVisible,
         )
         if (state.password.isNotEmpty()) {
             StrengthIndicator(state.strength)
         }
-        OutlinedTextField(
+        PasswordTextField(
             value = state.confirmation,
             onValueChange = { onIntent(OnboardingIntent.ConfirmationChanged(it)) },
-            label = { Text(stringResource(R.string.master_password_confirm_label)) },
-            singleLine = true,
-            visualTransformation = transformation,
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            modifier = Modifier.fillMaxWidth(),
+            label = stringResource(R.string.master_password_confirm_label),
+            isVisible = state.isPasswordVisible,
+            imeAction = ImeAction.Done,
+            onImeAction = { onIntent(OnboardingIntent.Submit) },
         )
         TextButton(onClick = { onIntent(OnboardingIntent.TogglePasswordVisibility) }) {
             Text(stringResource(if (state.isPasswordVisible) R.string.hide_passwords else R.string.show_passwords))

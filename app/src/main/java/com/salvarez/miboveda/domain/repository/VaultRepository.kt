@@ -10,4 +10,10 @@ interface VaultRepository {
 
     /** Creates the vault and leaves it unlocked. The caller owns [masterPassword] and may clear it afterwards. */
     suspend fun create(masterPassword: CharArray): Outcome<Unit>
+
+    /** Unlocks an existing vault. The caller owns [masterPassword] and may clear it afterwards. */
+    suspend fun unlock(masterPassword: CharArray): Outcome<Unit>
+
+    /** Closes the database and forgets the keys. */
+    suspend fun lock()
 }

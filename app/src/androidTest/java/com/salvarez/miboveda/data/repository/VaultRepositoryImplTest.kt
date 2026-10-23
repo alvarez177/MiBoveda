@@ -5,12 +5,14 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.test.core.app.ApplicationProvider
 import com.salvarez.miboveda.data.crypto.AesGcmKeyWrapper
 import com.salvarez.miboveda.data.crypto.Argon2KeyDerivation
+import com.salvarez.miboveda.data.db.EntryEntity
 import com.salvarez.miboveda.data.db.VaultSession
 import com.salvarez.miboveda.data.settings.VaultHeaderStore
 import com.salvarez.miboveda.domain.Outcome
 import com.salvarez.miboveda.domain.error.VaultError
 import java.io.File
 import java.util.UUID
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -86,6 +88,39 @@ class VaultRepositoryImplTest {
         repository.create(password)
         assertEquals("a long enough password", String(password))
         assertFalse(password.all { it == '\u0000' })
+    }
+
+    @Test
+    fun unlockingAfterLockingReopensTheSameData() = runTest {
+        repository.create(password)
+        session.entryDao().upsert(
+            EntryEntity(0, "Bank", "ana", "s3cret", "", "", 1L),
+        )
+        repository.lock()
+        assertFalse(repository.isUnlocked.value)
+        assertFalse(session.isOpen)
+
+        assertEquals(Outcome.Success(Unit), repository.unlock(password.copyOf()))
+
+        assertTrue(repository.isUnlocked.value)
+        assertEquals(listOf("Bank"), session.entryDao().observeAll().first().map { it.title })
+    }
+
+    @Test
+    fun unlockingWithAWrongPasswordFailsAndStaysLocked() = runTest {
+        repository.create(password)
+        repository.lock()
+
+        val result = repository.unlock("another wrong password".toCharArray())
+
+        assertEquals(Outcome.Failure(VaultError.WrongMasterPassword), result)
+        assertFalse(repository.isUnlocked.value)
+        assertFalse(session.isOpen)
+    }
+
+    @Test
+    fun unlockingWithoutAVaultFails() = runTest {
+        assertEquals(Outcome.Failure(VaultError.VaultNotCreated), repository.unlock(password))
     }
 
     private fun cleanUp() {

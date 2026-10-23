@@ -22,8 +22,10 @@ import com.salvarez.miboveda.presentation.common.message
 import com.salvarez.miboveda.presentation.onboarding.OnboardingRoute
 import com.salvarez.miboveda.presentation.start.StartState
 import com.salvarez.miboveda.presentation.start.StartViewModel
+import com.salvarez.miboveda.presentation.unlock.UnlockRoute
 
 private const val ROUTE_ONBOARDING = "onboarding"
+private const val ROUTE_UNLOCK = "unlock"
 private const val ROUTE_PLACEHOLDER = "placeholder"
 
 @Composable
@@ -37,7 +39,8 @@ fun MiBovedaNavHost(startViewModel: StartViewModel = hiltViewModel()) {
                 Text(start.error.message(), color = MaterialTheme.colorScheme.error)
             }
             StartState.NoVault -> VaultNavHost(ROUTE_ONBOARDING, modifier)
-            StartState.VaultExists -> VaultNavHost(ROUTE_PLACEHOLDER, modifier)
+            StartState.VaultLocked -> VaultNavHost(ROUTE_UNLOCK, modifier)
+            StartState.VaultUnlocked -> VaultNavHost(ROUTE_PLACEHOLDER, modifier)
         }
     }
 }
@@ -49,6 +52,11 @@ private fun VaultNavHost(startDestination: String, modifier: Modifier) {
         composable(ROUTE_ONBOARDING) {
             OnboardingRoute(onVaultCreated = {
                 navController.navigate(ROUTE_PLACEHOLDER) { popUpTo(ROUTE_ONBOARDING) { inclusive = true } }
+            })
+        }
+        composable(ROUTE_UNLOCK) {
+            UnlockRoute(onUnlocked = {
+                navController.navigate(ROUTE_PLACEHOLDER) { popUpTo(ROUTE_UNLOCK) { inclusive = true } }
             })
         }
         composable(ROUTE_PLACEHOLDER) { PlaceholderScreen() }
