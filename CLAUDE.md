@@ -17,6 +17,7 @@ El plan aprobado y el estado de cada paso están en `@docs/PLAN.md`. Léelo al e
 - Seguridad: Room + SQLCipher; `KEK = Argon2id(contraseña maestra)` envuelve una `DEK` aleatoria que cifra la BD; Keystore/biometría solo envuelven la DEK como comodidad. Sin criptografía propia: librerías estándar.
 
 ## Calidad de código
+- Idioma: respuestas, resúmenes y documentación en español; todo el código de implementación (identificadores, comentarios de código) en inglés.
 - Código limpio, SOLID, KISS/YAGNI. Patrones de diseño solo si resuelven un problema real (explica brevemente por qué). Sin abstracciones, capas ni clases genéricas que no se necesiten hoy.
 - Nombres claros, funciones pequeñas, comentarios solo cuando aporten.
 - Verifica versiones de dependencias en la documentación oficial antes de fijarlas; nada alpha/beta/rc.
