@@ -42,8 +42,8 @@ class VaultSession @Inject constructor(
         database = db
     }
 
-    /** Throws [IllegalStateException] when the vault is locked. */
-    fun entryDao(): EntryDao = checkNotNull(database) { "Vault is locked" }.entryDao()
+    /** Throws [VaultLockedException] when the vault is locked. */
+    fun entryDao(): EntryDao = (database ?: throw VaultLockedException()).entryDao()
 
     fun close() {
         database?.close()
@@ -60,3 +60,5 @@ class VaultSession @Inject constructor(
         }
     }
 }
+
+class VaultLockedException : IllegalStateException("Vault is locked")

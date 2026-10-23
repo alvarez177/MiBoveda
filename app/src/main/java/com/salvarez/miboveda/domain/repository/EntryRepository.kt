@@ -7,7 +7,8 @@ import kotlinx.coroutines.flow.Flow
 interface EntryRepository {
     fun observeAll(): Flow<Outcome<List<PasswordEntry>>>
 
-    suspend fun get(id: Long): Outcome<PasswordEntry>
+    /** Emits [com.salvarez.miboveda.domain.error.VaultError.EntryNotFound] when the entry does not exist (or is deleted). */
+    fun observe(id: Long): Flow<Outcome<PasswordEntry>>
 
     /** Inserts when [PasswordEntry.id] is [PasswordEntry.NEW_ID], updates otherwise. Returns the entry id. */
     suspend fun save(entry: PasswordEntry): Outcome<Long>

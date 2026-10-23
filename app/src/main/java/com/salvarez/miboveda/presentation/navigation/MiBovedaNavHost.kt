@@ -2,23 +2,27 @@ package com.salvarez.miboveda.presentation.navigation
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.navigation.NavController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.salvarez.miboveda.R
+import androidx.navigation.navArgument
+import com.salvarez.miboveda.domain.model.PasswordEntry
 import com.salvarez.miboveda.presentation.common.message
+import com.salvarez.miboveda.presentation.detail.EntryDetailRoute
+import com.salvarez.miboveda.presentation.edit.EntryEditRoute
+import com.salvarez.miboveda.presentation.list.EntryListRoute
 import com.salvarez.miboveda.presentation.onboarding.OnboardingRoute
 import com.salvarez.miboveda.presentation.start.StartState
 import com.salvarez.miboveda.presentation.start.StartViewModel
@@ -26,51 +30,63 @@ import com.salvarez.miboveda.presentation.unlock.UnlockRoute
 
 private const val ROUTE_ONBOARDING = "onboarding"
 private const val ROUTE_UNLOCK = "unlock"
-private const val ROUTE_PLACEHOLDER = "placeholder"
+private const val ROUTE_ENTRIES = "entries"
+private const val ARG_ID = "id"
+private const val ROUTE_DETAIL = "entries/{$ARG_ID}"
+private const val ROUTE_EDIT = "entries/{$ARG_ID}/edit"
+
+private fun detailRoute(id: Long) = "entries/$id"
+private fun editRoute(id: Long) = "entries/$id/edit"
 
 @Composable
 fun MiBovedaNavHost(startViewModel: StartViewModel = hiltViewModel()) {
     val startState by startViewModel.state.collectAsStateWithLifecycle()
-    Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-        val modifier = Modifier.padding(innerPadding)
-        when (val start = startState) {
-            StartState.Loading -> CenteredBox(modifier) { CircularProgressIndicator() }
-            is StartState.Failed -> CenteredBox(modifier) {
-                Text(start.error.message(), color = MaterialTheme.colorScheme.error)
-            }
-            StartState.NoVault -> VaultNavHost(ROUTE_ONBOARDING, modifier)
-            StartState.VaultLocked -> VaultNavHost(ROUTE_UNLOCK, modifier)
-            StartState.VaultUnlocked -> VaultNavHost(ROUTE_PLACEHOLDER, modifier)
-        }
+    when (val start = startState) {
+        StartState.Loading -> CenteredBox { CircularProgressIndicator() }
+        is StartState.Failed -> CenteredBox { Text(start.error.message(), color = MaterialTheme.colorScheme.error) }
+        StartState.NoVault -> VaultNavHost(ROUTE_ONBOARDING)
+        StartState.VaultLocked -> VaultNavHost(ROUTE_UNLOCK)
+        StartState.VaultUnlocked -> VaultNavHost(ROUTE_ENTRIES)
     }
 }
 
 @Composable
-private fun VaultNavHost(startDestination: String, modifier: Modifier) {
+private fun VaultNavHost(startDestination: String) {
     val navController = rememberNavController()
-    NavHost(navController = navController, startDestination = startDestination, modifier = modifier) {
+    val idArgument = listOf(navArgument(ARG_ID) { type = NavType.LongType })
+    NavHost(navController = navController, startDestination = startDestination) {
         composable(ROUTE_ONBOARDING) {
-            OnboardingRoute(onVaultCreated = {
-                navController.navigate(ROUTE_PLACEHOLDER) { popUpTo(ROUTE_ONBOARDING) { inclusive = true } }
-            })
+            OnboardingRoute(onVaultCreated = { navController.openEntriesAfter(ROUTE_ONBOARDING) })
         }
         composable(ROUTE_UNLOCK) {
-            UnlockRoute(onUnlocked = {
-                navController.navigate(ROUTE_PLACEHOLDER) { popUpTo(ROUTE_UNLOCK) { inclusive = true } }
-            })
+            UnlockRoute(onUnlocked = { navController.openEntriesAfter(ROUTE_UNLOCK) })
         }
-        composable(ROUTE_PLACEHOLDER) { PlaceholderScreen() }
+        composable(ROUTE_ENTRIES) {
+            EntryListRoute(
+                onAdd = { navController.navigate(editRoute(PasswordEntry.NEW_ID)) },
+                onEntryClick = { navController.navigate(detailRoute(it)) },
+            )
+        }
+        composable(ROUTE_DETAIL, arguments = idArgument) {
+            EntryDetailRoute(
+                onBack = { navController.popBackStack() },
+                onEdit = { navController.navigate(editRoute(it)) },
+            )
+        }
+        composable(ROUTE_EDIT, arguments = idArgument) {
+            EntryEditRoute(
+                onBack = { navController.popBackStack() },
+                onSaved = { navController.popBackStack() },
+            )
+        }
     }
 }
 
-@Composable
-private fun PlaceholderScreen() {
-    CenteredBox(Modifier) {
-        Text(stringResource(R.string.placeholder_message), style = MaterialTheme.typography.bodyLarge)
-    }
+private fun NavController.openEntriesAfter(route: String) {
+    navigate(ROUTE_ENTRIES) { popUpTo(route) { inclusive = true } }
 }
 
 @Composable
-private fun CenteredBox(modifier: Modifier, content: @Composable () -> Unit) {
-    Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) { content() }
+private fun CenteredBox(content: @Composable () -> Unit) {
+    Box(modifier = Modifier.fillMaxSize().safeDrawingPadding(), contentAlignment = Alignment.Center) { content() }
 }
