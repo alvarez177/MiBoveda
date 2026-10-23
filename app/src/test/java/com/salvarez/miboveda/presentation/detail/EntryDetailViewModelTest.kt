@@ -23,8 +23,13 @@ import org.junit.Test
 class EntryDetailViewModelTest {
     private class FakeClipboard : SensitiveClipboard {
         val copies = mutableListOf<Pair<String, String>>()
+        var clears = 0
         override fun copy(label: String, text: String) {
             copies += label to text
+        }
+
+        override fun clear() {
+            clears++
         }
     }
 

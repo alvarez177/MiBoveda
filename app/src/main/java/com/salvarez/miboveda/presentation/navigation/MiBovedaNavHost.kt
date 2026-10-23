@@ -7,10 +7,11 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavType
@@ -41,18 +42,26 @@ private fun editRoute(id: Long) = "entries/$id/edit"
 @Composable
 fun MiBovedaNavHost(startViewModel: StartViewModel = hiltViewModel()) {
     val startState by startViewModel.state.collectAsStateWithLifecycle()
+    val isUnlocked by startViewModel.isUnlocked.collectAsStateWithLifecycle()
     when (val start = startState) {
         StartState.Loading -> CenteredBox { CircularProgressIndicator() }
         is StartState.Failed -> CenteredBox { Text(start.error.message(), color = MaterialTheme.colorScheme.error) }
-        StartState.NoVault -> VaultNavHost(ROUTE_ONBOARDING)
-        StartState.VaultLocked -> VaultNavHost(ROUTE_UNLOCK)
-        StartState.VaultUnlocked -> VaultNavHost(ROUTE_ENTRIES)
+        StartState.NoVault -> VaultNavHost(ROUTE_ONBOARDING, isUnlocked)
+        StartState.VaultLocked -> VaultNavHost(ROUTE_UNLOCK, isUnlocked)
+        StartState.VaultUnlocked -> VaultNavHost(ROUTE_ENTRIES, isUnlocked)
     }
 }
 
 @Composable
-private fun VaultNavHost(startDestination: String) {
+private fun VaultNavHost(startDestination: String, isUnlocked: Boolean) {
     val navController = rememberNavController()
+    // Whenever the vault locks itself, leave the data screens and ask for the master password again.
+    LaunchedEffect(isUnlocked) {
+        val route = navController.currentDestination?.route
+        if (!isUnlocked && route != null && route != ROUTE_ONBOARDING && route != ROUTE_UNLOCK) {
+            navController.navigate(ROUTE_UNLOCK) { popUpTo(navController.graph.id) { inclusive = true } }
+        }
+    }
     val idArgument = listOf(navArgument(ARG_ID) { type = NavType.LongType })
     NavHost(navController = navController, startDestination = startDestination) {
         composable(ROUTE_ONBOARDING) {

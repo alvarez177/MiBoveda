@@ -25,6 +25,8 @@ class StartViewModel @Inject constructor(
     vaultRepository: VaultRepository,
 ) : ViewModel() {
 
+    val isUnlocked: StateFlow<Boolean> = vaultRepository.isUnlocked
+
     private val _state = MutableStateFlow<StartState>(StartState.Loading)
     val state: StateFlow<StartState> = _state.asStateFlow()
 
