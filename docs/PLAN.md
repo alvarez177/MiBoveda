@@ -111,6 +111,7 @@ Reglas por paso: commits pequeños; antes de avisarte `./gradlew assembleDebug` 
 - Paso 4: se añadió kotlinx-coroutines 1.11.0 (core + test), verificada en Maven Central. `outcomeOf` vive en `data/` (lo usan los repositorios) y las interfaces de repositorio son mínimas; se ajustarán en los pasos 6 y 10 si hace falta. Los casos de uso se crean junto a cada pantalla que los necesita (pasos 8–12).
 - Paso 5: Argon2id con parámetros por defecto 3 iteraciones / 64 MiB / 1 hilo. En el emulador (API 29) tarda ~310 ms; en un teléfono real será más lento. Los parámetros se guardarán en la cabecera de la bóveda, así que se pueden recalibrar sin romper bóvedas existentes. Pendiente: medir en un dispositivo físico (la prueba `logsDerivationTimeForCalibration` escribe el tiempo en logcat con la etiqueta `KdfCalibration`).
 - Paso 6: Room 2.8.5, sqlcipher-android 4.19.1 y androidx.sqlite 2.7.0 (verificadas). `VaultSession` pasa a SQLCipher una copia de la clave porque la librería borra la que recibe. El esquema se exporta a `app/schemas/` para futuras migraciones. `EntryRepository` se implementa en el paso 10.
+- Paso 7: además de `allowBackup=false` se vaciaron los archivos de reglas (`backup_rules.xml`, `data_extraction_rules.xml`) excluyendo todo, para cubrir también la transferencia entre dispositivos (API 31+). R8 queda activo en release; argon2kt no trae reglas propias y se añadió una (SQLCipher sí las trae). Verificado: el mapping de release conserva las clases de argon2kt y SQLCipher sin ofuscar.
 
 ## Estado de los pasos
 Actualizar al terminar cada paso. Estados: pendiente / en progreso / hecho.
@@ -123,7 +124,7 @@ Actualizar al terminar cada paso. Estados: pendiente / en progreso / hecho.
 | 4 | feature/domain-core | hecho |
 | 5 | feature/crypto-keys | en progreso |
 | 6 | feature/encrypted-database | hecho |
-| 7 | feature/hardening-manifest | pendiente |
+| 7 | feature/hardening-manifest | hecho |
 | 8 | feature/create-vault | pendiente |
 | 9 | feature/unlock-vault | pendiente |
 | 10 | feature/entries-crud | pendiente |
