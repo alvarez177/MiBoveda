@@ -6,8 +6,8 @@ MiBoveda is an Android password vault app (package `com.salvarez.miboveda`). It 
 
 ## Plan y forma de trabajo
 El plan aprobado y el estado de cada paso están en `@docs/PLAN.md`. Léelo al empezar una sesión y actualízalo al terminar cada paso.
-- Ramas: `master` (estable) y `develop` (integración). Cada paso va en `feature/<nombre-del-paso>` creada desde `develop` actualizado. Sin pull requests.
-- Sigue el orden de los pasos. Por paso: commits pequeños y descriptivos; antes de avisar, `./gradlew assembleDebug` y tests existentes en verde; resumen (qué, por qué, qué debe probar el usuario); luego DETENTE. No fusiones a `develop`/`master` ni empieces el siguiente paso hasta que el usuario confirme que revisó, probó y fusionó.
+- Ramas: `master` (estable) y `develop` (integración). Cada paso va en `feature/<nombre-del-paso>` creada desde `develop` actualizado. Al terminar un paso, súbela a `origin` y crea un pull request hacia `develop` con `gh pr create --base develop` (título y descripción en español, con resumen y qué probar, sin atribución a Claude). El usuario revisa y fusiona el PR; yo no fusiono.
+- Sigue el orden de los pasos. Por paso: commits pequeños y descriptivos; antes de avisar, `./gradlew assembleDebug` y tests existentes en verde; crear el PR a `develop`; resumen (qué, por qué, qué debe probar el usuario) con el enlace del PR; luego DETENTE. No fusiones a `develop`/`master` ni empieces el siguiente paso hasta que el usuario confirme que revisó, probó y fusionó el PR.
 - Autoría: todos los commits van a nombre del usuario. No añadir `Co-Authored-By` de Claude ni ninguna otra atribución a Claude en commits o descripciones.
 - Si algo no compila o hay una duda de diseño, pregunta antes de seguir.
 

@@ -70,8 +70,8 @@ di/             módulos Hilt
 
 **No verificado todavía (se confirma en el paso que los use, antes de fijarlos):** kotlinx-coroutines (+test), MockK, Turbine, versiones de androidx.test; compatibilidad exacta KSP 2.3.12 ↔ Kotlin 2.4.21; si `hilt-navigation-compose` 1.4.0 exige `compileSdk` 37 (las betas lo mencionaban); comportamiento del plugin de Hilt con el Kotlin integrado de AGP 9. No se usan versiones alpha/beta/rc. `androidx.security:security-crypto` no se usa.
 
-## Pasos (cada uno = rama `feature/...` desde `develop`; sin PR; yo me detengo tras cada uno)
-Reglas por paso: commits pequeños; antes de avisarte `./gradlew assembleDebug` + tests; resumen (qué/por qué/qué probar); espero tu confirmación de que fusionaste a `develop`. Se actualiza `docs/PLAN.md` al terminar cada uno.
+## Pasos (cada uno = rama `feature/...` desde `develop`; PR hacia `develop` que tú revisas y fusionas; yo me detengo tras cada uno)
+Reglas por paso: commits pequeños; antes de avisarte `./gradlew assembleDebug` + tests; subo la rama y creo el PR a `develop` (`gh pr create --base develop`); resumen (qué/por qué/qué probar) con el enlace del PR; espero tu confirmación de que lo revisaste y fusionaste. Se actualiza `docs/PLAN.md` al terminar cada uno.
 
 **Fase 0 — Base**
 1. `feature/docs-plan`: crear `docs/PLAN.md` (este plan + tabla de estado) y ampliar `CLAUDE.md` (referencia al plan y reglas de arquitectura, calidad y forma de trabajo).
