@@ -6,8 +6,10 @@ import com.salvarez.miboveda.domain.Outcome
 import com.salvarez.miboveda.domain.error.VaultError
 import com.salvarez.miboveda.domain.usecase.DisableBiometric
 import com.salvarez.miboveda.domain.usecase.EnableBiometric
+import com.salvarez.miboveda.domain.usecase.ObserveAutoLockTimeout
 import com.salvarez.miboveda.domain.usecase.ObserveBiometricStatus
 import com.salvarez.miboveda.domain.usecase.PrepareBiometricEnrollment
+import com.salvarez.miboveda.domain.usecase.SetAutoLockTimeout
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.crypto.Cipher
 import javax.inject.Inject
@@ -24,6 +26,8 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     observeBiometricStatus: ObserveBiometricStatus,
+    observeAutoLockTimeout: ObserveAutoLockTimeout,
+    private val setAutoLockTimeout: SetAutoLockTimeout,
     private val prepareBiometricEnrollment: PrepareBiometricEnrollment,
     private val enableBiometric: EnableBiometric,
     private val disableBiometric: DisableBiometric,
@@ -42,11 +46,15 @@ class SettingsViewModel @Inject constructor(
         observeBiometricStatus()
             .onEach { status -> _state.update { it.copy(biometricStatus = status) } }
             .launchIn(viewModelScope)
+        observeAutoLockTimeout()
+            .onEach { timeout -> _state.update { it.copy(autoLockTimeout = timeout) } }
+            .launchIn(viewModelScope)
     }
 
     fun onIntent(intent: SettingsIntent) {
         when (intent) {
             is SettingsIntent.ToggleBiometric -> toggleBiometric(intent.enable)
+            is SettingsIntent.SelectAutoLockTimeout -> viewModelScope.launch { setAutoLockTimeout(intent.timeout) }
             is SettingsIntent.PasswordChanged -> _state.update { it.copy(password = intent.value, error = null) }
             SettingsIntent.ConfirmPassword -> confirmPassword()
             SettingsIntent.DismissPasswordDialog -> _state.update { it.copy(isPasswordDialogVisible = false, password = "") }

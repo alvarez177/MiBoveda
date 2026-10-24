@@ -16,7 +16,9 @@ data class UnlockState(
 }
 
 sealed interface UnlockIntent {
-    data class PasswordChanged(val value: String) : UnlockIntent
+    data class PasswordChanged(val value: String) : UnlockIntent {
+        override fun toString(): String = "PasswordChanged"
+    }
     data object TogglePasswordVisibility : UnlockIntent
     data object Submit : UnlockIntent
     data object BiometricClicked : UnlockIntent

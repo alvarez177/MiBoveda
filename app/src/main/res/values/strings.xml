@@ -51,6 +51,12 @@
     <string name="biometric_password_dialog_title">Confirma tu contraseña maestra</string>
     <string name="biometric_password_dialog_message">Hace falta para activar el desbloqueo biométrico.</string>
     <string name="confirm">Confirmar</string>
+    <string name="auto_lock_title">Bloqueo automático</string>
+    <string name="auto_lock_description">Tiempo que la app puede estar en segundo plano antes de volver a pedir la contraseña.</string>
+    <string name="auto_lock_immediate">Al salir de la app</string>
+    <string name="auto_lock_30_seconds">Después de 30 segundos</string>
+    <string name="auto_lock_1_minute">Después de 1 minuto</string>
+    <string name="auto_lock_5_minutes">Después de 5 minutos</string>
 
     <string name="error_wrong_master_password">La contraseña maestra es incorrecta.</string>
     <string name="error_vault_locked">La bóveda está bloqueada.</string>

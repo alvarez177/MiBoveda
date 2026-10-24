@@ -30,7 +30,7 @@ El plan aprobado y el estado de cada paso están en `@docs/PLAN.md`. Léelo al e
 
 ## Commands
 - Single unit test: `./gradlew :app:testDebugUnitTest --tests "com.salvarez.miboveda.<Class>"`
-- Instrumented tests (needs device/emulator): `./gradlew :app:connectedDebugAndroidTest`
+- Instrumented tests (needs device/emulator): `ANDROID_SERIAL=emulator-5554 ./gradlew :app:connectedDebugAndroidTest`. Always set `ANDROID_SERIAL` to the emulator: the task runs on every connected device and uninstalls the app (wiping its data) from each, including the user's phone.
 - Lint (no custom lint config): `./gradlew :app:lintDebug`
 
 ## Security gotchas

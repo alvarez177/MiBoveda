@@ -4,6 +4,7 @@ import com.salvarez.miboveda.domain.model.PasswordEntry
 import com.salvarez.miboveda.domain.usecase.FakeEntryRepository
 import com.salvarez.miboveda.domain.usecase.ObserveEntries
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -15,6 +16,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Before
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class EntryListViewModelTest {
     @Before
     fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())

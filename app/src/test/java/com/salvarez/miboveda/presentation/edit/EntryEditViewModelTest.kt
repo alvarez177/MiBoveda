@@ -7,6 +7,7 @@ import com.salvarez.miboveda.domain.usecase.FakeEntryRepository
 import com.salvarez.miboveda.domain.usecase.ObserveEntry
 import com.salvarez.miboveda.domain.usecase.SaveEntry
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -19,6 +20,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class EntryEditViewModelTest {
     @Before
     fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())

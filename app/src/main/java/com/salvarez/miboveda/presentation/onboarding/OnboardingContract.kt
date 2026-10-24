@@ -18,8 +18,12 @@ data class OnboardingState(
 }
 
 sealed interface OnboardingIntent {
-    data class PasswordChanged(val value: String) : OnboardingIntent
-    data class ConfirmationChanged(val value: String) : OnboardingIntent
+    data class PasswordChanged(val value: String) : OnboardingIntent {
+        override fun toString(): String = "PasswordChanged"
+    }
+    data class ConfirmationChanged(val value: String) : OnboardingIntent {
+        override fun toString(): String = "ConfirmationChanged"
+    }
     data object TogglePasswordVisibility : OnboardingIntent
     data object Submit : OnboardingIntent
 }

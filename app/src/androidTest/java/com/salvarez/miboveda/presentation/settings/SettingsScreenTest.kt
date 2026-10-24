@@ -4,9 +4,10 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.isToggleable
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import com.salvarez.miboveda.domain.model.AutoLockTimeout
 import com.salvarez.miboveda.domain.model.BiometricStatus
 import com.salvarez.miboveda.presentation.theme.MiBovedaTheme
 import org.junit.Assert.assertEquals
@@ -37,6 +38,16 @@ class SettingsScreenTest {
         composeRule.onNode(isToggleable()).assertIsEnabled().performClick()
 
         assertEquals(listOf<SettingsIntent>(SettingsIntent.ToggleBiometric(enable = true)), intents)
+    }
+
+    @Test
+    fun choosingAnAutoLockTimeoutSendsTheIntent() {
+        val intents = mutableListOf<SettingsIntent>()
+        show(SettingsState(autoLockTimeout = AutoLockTimeout.IMMEDIATE), intents::add)
+
+        composeRule.onNodeWithText("Después de 5 minutos").performClick()
+
+        assertEquals(listOf<SettingsIntent>(SettingsIntent.SelectAutoLockTimeout(AutoLockTimeout.FIVE_MINUTES)), intents)
     }
 
     @Test
