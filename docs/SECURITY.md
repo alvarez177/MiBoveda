@@ -22,6 +22,17 @@ Estado a la fecha del paso 13. **Auto** = lo comprueba un test automático; **Ma
 | La clave no aparece en `toString` de estados e intents | Auto | `OnboardingViewModelTest`, `RecoveryViewModelTest`, `SettingsViewModelTest` |
 | El portapapeles se limpia a los 30 s tras copiar la clave | Manual (pendiente) | Igual que las contraseñas |
 
+## Copia de seguridad
+| Control | Estado | Cómo se comprueba |
+|---|---|---|
+| El archivo no contiene texto legible y cada copia es distinta (IV y sal aleatorios) | Auto | `BackupCodecTest`, `BackupRepositoryImplTest` |
+| Clave = Argon2id(contraseña maestra, sal propia de la copia); cabecera autenticada con GCM | Auto | `BackupCodecTest` (alterar la cabecera o los datos falla) |
+| Se exige la contraseña maestra correcta antes de escribir; con otra no se crea archivo | Auto | `BackupRepositoryImplTest` |
+| Con la bóveda bloqueada no se escribe nada | Auto | `BackupRepositoryImplTest` |
+| El selector de archivos no bloquea la bóveda a mitad de la exportación (gracia única de 2 min) | Auto + Manual | `AutoLockControllerTest`; emulador con el selector real |
+| La copia exportada se puede descifrar con la contraseña maestra y contiene todas las entradas | Auto | `BackupRepositoryImplTest` |
+| El archivo exportado queda donde el usuario lo elija: protegerlo es cosa suya (está cifrado, pero una contraseña maestra débil lo hace atacable offline) | Limitación | |
+
 ## Biometría
 | Control | Estado | Cómo se comprueba |
 |---|---|---|
@@ -65,4 +76,4 @@ Estado a la fecha del paso 13. **Auto** = lo comprueba un test automático; **Ma
 - Un dispositivo con root o malware con permisos de accesibilidad puede leer la pantalla; FLAG_SECURE no lo evita.
 
 ## Pendiente de la Fase 2
-Exportación de backup cifrado (paso 15) e importación (16).
+Importación de la copia de seguridad (paso 16).

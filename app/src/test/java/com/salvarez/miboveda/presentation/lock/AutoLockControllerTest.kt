@@ -102,4 +102,76 @@ class AutoLockControllerTest {
         assertEquals(0, repository.lockCalls)
         assertEquals(0, clipboard.clears)
     }
+
+    @Test
+    fun `a trip to a system screen gets a grace period even with an immediate timeout`() {
+        val repository = FakeVaultRepository(unlocked = true)
+        val controller = controller(repository, AutoLockTimeout.IMMEDIATE)
+        controller.allowExternalActivity()
+        controller.onAppBackgrounded()
+
+        scope.advanceTimeBy(AutoLockController.EXTERNAL_ACTIVITY_GRACE_MILLIS - 1_000)
+        scope.runCurrent()
+        assertTrue(repository.isUnlocked.value)
+
+        scope.advanceTimeBy(1_000)
+        scope.runCurrent()
+        assertFalse(repository.isUnlocked.value)
+    }
+
+    @Test
+    fun `coming back from the system screen in time keeps the vault open`() {
+        val repository = FakeVaultRepository(unlocked = true)
+        val controller = controller(repository, AutoLockTimeout.IMMEDIATE)
+        controller.allowExternalActivity()
+        controller.onAppBackgrounded()
+        scope.runCurrent()
+        now += 20_000
+        controller.onAppForegrounded()
+        scope.runCurrent()
+
+        assertTrue(repository.isUnlocked.value)
+    }
+
+    @Test
+    fun `staying away too long from the system screen still locks`() {
+        val repository = FakeVaultRepository(unlocked = true)
+        val controller = controller(repository, AutoLockTimeout.IMMEDIATE)
+        controller.allowExternalActivity()
+        controller.onAppBackgrounded()
+        scope.runCurrent()
+        now += AutoLockController.EXTERNAL_ACTIVITY_GRACE_MILLIS + 1
+        controller.onAppForegrounded()
+        scope.runCurrent()
+
+        assertFalse(repository.isUnlocked.value)
+    }
+
+    @Test
+    fun `the grace period is only for one trip`() {
+        val repository = FakeVaultRepository(unlocked = true)
+        val controller = controller(repository, AutoLockTimeout.IMMEDIATE)
+        controller.allowExternalActivity()
+        controller.onAppBackgrounded()
+        scope.runCurrent()
+        controller.onAppForegrounded()
+        scope.runCurrent()
+
+        controller.onAppBackgrounded()
+        scope.runCurrent()
+
+        assertFalse(repository.isUnlocked.value)
+    }
+
+    @Test
+    fun `the grace period is dropped if the app never left`() {
+        val repository = FakeVaultRepository(unlocked = true)
+        val controller = controller(repository, AutoLockTimeout.IMMEDIATE)
+        controller.allowExternalActivity()
+        controller.onAppForegrounded()
+        controller.onAppBackgrounded()
+        scope.runCurrent()
+
+        assertFalse(repository.isUnlocked.value)
+    }
 }

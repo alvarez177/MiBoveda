@@ -10,6 +10,9 @@ interface EntryDao {
     @Query("SELECT * FROM entries ORDER BY title COLLATE NOCASE")
     fun observeAll(): Flow<List<EntryEntity>>
 
+    @Query("SELECT * FROM entries ORDER BY id")
+    suspend fun getAll(): List<EntryEntity>
+
     @Query("SELECT * FROM entries WHERE id = :id")
     fun observeById(id: Long): Flow<EntryEntity?>
 

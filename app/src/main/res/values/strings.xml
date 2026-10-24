@@ -79,6 +79,12 @@
     <string name="recovery_key_dialog_title">Tu clave de recuperación</string>
     <string name="recovery_key_saved">Ya la guardé</string>
 
+    <string name="backup_title">Copia de seguridad</string>
+    <string name="backup_description">Guarda todas tus contraseñas en un archivo cifrado con tu contraseña maestra, para restaurarlas en otro dispositivo. Solo se abre con la contraseña maestra que tienes ahora; si la cambias más adelante con la clave de recuperación, esta copia seguirá pidiendo la anterior.</string>
+    <string name="backup_export">Exportar copia cifrada</string>
+    <string name="backup_saved">Copia guardada correctamente.</string>
+    <string name="backup_password_dialog_message">Hace falta para cifrar la copia con tu contraseña maestra.</string>
+
     <string name="error_wrong_master_password">La contraseña maestra es incorrecta.</string>
     <string name="error_vault_locked">La bóveda está bloqueada.</string>
     <string name="error_master_password_too_short">La contraseña maestra debe tener al menos %1$d caracteres.</string>
