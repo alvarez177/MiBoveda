@@ -1,13 +1,17 @@
 package com.salvarez.miboveda.presentation.settings
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -49,11 +53,15 @@ fun SettingsRoute(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val authenticator = rememberBiometricAuthenticator()
+    val backupPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/octet-stream"),
+    ) { uri -> viewModel.onIntent(SettingsIntent.BackupLocationChosen(uri?.toString())) }
     val promptTitle = stringResource(R.string.biometric_prompt_enable_title)
     val promptNegative = stringResource(R.string.cancel)
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
             when (effect) {
+                is SettingsEffect.PickBackupLocation -> backupPicker.launch(effect.suggestedName)
                 is SettingsEffect.ShowBiometricPrompt -> authenticator.authenticate(
                     cipher = effect.cipher,
                     title = promptTitle,
@@ -83,7 +91,11 @@ fun SettingsScreen(
         },
     ) { innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(innerPadding).padding(24.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .verticalScroll(rememberScrollState())
+                .padding(24.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -113,6 +125,8 @@ fun SettingsScreen(
             AutoLockSection(state.autoLockTimeout) { onIntent(SettingsIntent.SelectAutoLockTimeout(it)) }
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             RecoverySection(state.hasRecoveryKey, enabled = !state.isBusy) { onIntent(SettingsIntent.RequestRecoveryKey) }
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            BackupSection(state.isBackupSaved, enabled = !state.isBusy) { onIntent(SettingsIntent.RequestBackup) }
         }
     }
     state.newRecoveryKey?.let {
@@ -130,10 +144,10 @@ fun SettingsScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                     Text(
                         stringResource(
-                            if (state.passwordDialogPurpose == PasswordDialogPurpose.RECOVERY_KEY) {
-                                R.string.recovery_password_dialog_message
-                            } else {
-                                R.string.biometric_password_dialog_message
+                            when (state.passwordDialogPurpose) {
+                                PasswordDialogPurpose.RECOVERY_KEY -> R.string.recovery_password_dialog_message
+                                PasswordDialogPurpose.EXPORT_BACKUP -> R.string.backup_password_dialog_message
+                                PasswordDialogPurpose.BIOMETRIC -> R.string.biometric_password_dialog_message
                             },
                         ),
                     )
@@ -173,6 +187,18 @@ private fun RecoveryKeyDialog(recoveryKey: String, onCopy: () -> Unit, onDismiss
         },
         confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.recovery_key_saved)) } },
     )
+}
+
+@Composable
+private fun BackupSection(isSaved: Boolean, enabled: Boolean, onExport: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(stringResource(R.string.backup_title), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.backup_description), style = MaterialTheme.typography.bodyMedium)
+        OutlinedButton(onClick = onExport, enabled = enabled) { Text(stringResource(R.string.backup_export)) }
+        if (isSaved) {
+            Text(stringResource(R.string.backup_saved), color = MaterialTheme.colorScheme.primary)
+        }
+    }
 }
 
 @Composable
