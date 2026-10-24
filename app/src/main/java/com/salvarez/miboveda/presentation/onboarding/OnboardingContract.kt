@@ -2,6 +2,7 @@ package com.salvarez.miboveda.presentation.onboarding
 
 import com.salvarez.miboveda.domain.error.VaultError
 import com.salvarez.miboveda.domain.model.PasswordStrength
+import com.salvarez.miboveda.domain.model.RecoveryKey
 import com.salvarez.miboveda.domain.model.evaluatePasswordStrength
 
 data class OnboardingState(
@@ -10,11 +11,15 @@ data class OnboardingState(
     val isPasswordVisible: Boolean = false,
     val isLoading: Boolean = false,
     val error: VaultError? = null,
+    /** Set once the vault exists: the screen then shows the recovery key until the user confirms saving it. */
+    val recoveryKey: RecoveryKey? = null,
+    val isRecoverySaved: Boolean = false,
 ) {
     val strength: PasswordStrength get() = evaluatePasswordStrength(password.toCharArray())
 
-    // Keeps the passwords out of logs.
-    override fun toString(): String = "OnboardingState(isLoading=$isLoading, error=$error)"
+    // Keeps the passwords and the recovery key out of logs.
+    override fun toString(): String =
+        "OnboardingState(isLoading=$isLoading, error=$error, hasRecoveryKey=${recoveryKey != null})"
 }
 
 sealed interface OnboardingIntent {
@@ -26,6 +31,9 @@ sealed interface OnboardingIntent {
     }
     data object TogglePasswordVisibility : OnboardingIntent
     data object Submit : OnboardingIntent
+    data object CopyRecoveryKey : OnboardingIntent
+    data object ToggleRecoverySaved : OnboardingIntent
+    data object ContinueAfterRecovery : OnboardingIntent
 }
 
 sealed interface OnboardingEffect {

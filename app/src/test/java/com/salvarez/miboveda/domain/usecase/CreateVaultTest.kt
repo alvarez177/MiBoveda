@@ -27,7 +27,7 @@ class CreateVaultTest {
     @Test
     fun `creates the vault with a valid password`() = runTest {
         val result = createVault("a long enough password".toCharArray(), "a long enough password".toCharArray())
-        assertEquals(Outcome.Success(Unit), result)
+        assertEquals(Outcome.Success(FakeVaultRepository.SAMPLE_RECOVERY_KEY), result)
         assertEquals(1, repository.createCalls)
     }
 }

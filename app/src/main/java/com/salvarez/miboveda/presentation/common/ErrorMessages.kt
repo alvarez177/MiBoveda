@@ -14,6 +14,8 @@ fun VaultError.message(): String = when (this) {
     VaultError.MasterPasswordMismatch -> stringResource(R.string.error_master_password_mismatch)
     VaultError.VaultNotCreated -> stringResource(R.string.error_vault_not_created)
     VaultError.VaultAlreadyExists -> stringResource(R.string.error_vault_already_exists)
+    VaultError.InvalidRecoveryKey -> stringResource(R.string.error_invalid_recovery_key)
+    VaultError.NoRecoveryKey -> stringResource(R.string.error_no_recovery_key)
     VaultError.EntryNotFound -> stringResource(R.string.error_entry_not_found)
     VaultError.EntryTitleRequired -> stringResource(R.string.error_entry_title_required)
     VaultError.BiometricInvalidated -> stringResource(R.string.error_biometric_invalidated)

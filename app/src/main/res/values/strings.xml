@@ -58,12 +58,35 @@
     <string name="auto_lock_1_minute">Después de 1 minuto</string>
     <string name="auto_lock_5_minutes">Después de 5 minutos</string>
 
+    <string name="recovery_title">Guarda tu clave de recuperación</string>
+    <string name="recovery_description">Es la única forma de volver a entrar si olvidas tu contraseña maestra. Anótala o imprímela y guárdala fuera de este teléfono. No volverás a verla.</string>
+    <string name="copy_recovery_key">Copiar clave</string>
+    <string name="recovery_saved_confirmation">He guardado mi clave de recuperación en un lugar seguro</string>
+    <string name="continue_action">Continuar</string>
+    <string name="forgot_password">¿Olvidaste tu contraseña?</string>
+    <string name="recover_title">Recupera tu bóveda</string>
+    <string name="recover_description">Escribe tu clave de recuperación y elige una nueva contraseña maestra. Tus datos se conservan.</string>
+    <string name="recovery_key_label">Clave de recuperación</string>
+    <string name="new_master_password_label">Nueva contraseña maestra</string>
+    <string name="new_master_password_confirm_label">Repite la nueva contraseña</string>
+    <string name="recover_vault">Recuperar bóveda</string>
+    <string name="recovery_setting_title">Clave de recuperación</string>
+    <string name="recovery_setting_present">Tienes una clave de recuperación. Si generas otra, la anterior deja de servir.</string>
+    <string name="recovery_setting_missing">Todavía no tienes clave de recuperación.</string>
+    <string name="generate_recovery_key">Generar clave</string>
+    <string name="generate_new_recovery_key">Generar una nueva clave</string>
+    <string name="recovery_password_dialog_message">Hace falta para generar la clave de recuperación.</string>
+    <string name="recovery_key_dialog_title">Tu clave de recuperación</string>
+    <string name="recovery_key_saved">Ya la guardé</string>
+
     <string name="error_wrong_master_password">La contraseña maestra es incorrecta.</string>
     <string name="error_vault_locked">La bóveda está bloqueada.</string>
     <string name="error_master_password_too_short">La contraseña maestra debe tener al menos %1$d caracteres.</string>
     <string name="error_master_password_mismatch">Las contraseñas no coinciden.</string>
     <string name="error_vault_not_created">Todavía no has creado una bóveda.</string>
     <string name="error_vault_already_exists">Ya existe una bóveda en este dispositivo.</string>
+    <string name="error_invalid_recovery_key">La clave de recuperación no es válida. Revísala e inténtalo de nuevo.</string>
+    <string name="error_no_recovery_key">Esta bóveda no tiene clave de recuperación.</string>
     <string name="error_entry_title_required">El título es obligatorio.</string>
     <string name="error_entry_not_found">No se encontró la entrada.</string>
     <string name="error_biometric_invalidated">Cambió la biometría registrada en el dispositivo. Desbloquea con tu contraseña y vuelve a activarla en Ajustes.</string>

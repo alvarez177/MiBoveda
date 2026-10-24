@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.salvarez.miboveda.domain.Outcome
 import com.salvarez.miboveda.domain.usecase.CreateVault
+import com.salvarez.miboveda.presentation.common.SensitiveClipboard
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
@@ -17,6 +18,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
     private val createVault: CreateVault,
+    private val clipboard: SensitiveClipboard,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(OnboardingState())
@@ -31,6 +33,9 @@ class OnboardingViewModel @Inject constructor(
             is OnboardingIntent.ConfirmationChanged -> _state.update { it.copy(confirmation = intent.value, error = null) }
             OnboardingIntent.TogglePasswordVisibility -> _state.update { it.copy(isPasswordVisible = !it.isPasswordVisible) }
             OnboardingIntent.Submit -> submit()
+            OnboardingIntent.CopyRecoveryKey -> _state.value.recoveryKey?.let { clipboard.copy("recovery", it.value) }
+            OnboardingIntent.ToggleRecoverySaved -> _state.update { it.copy(isRecoverySaved = !it.isRecoverySaved) }
+            OnboardingIntent.ContinueAfterRecovery -> continueAfterRecovery()
         }
     }
 
@@ -47,12 +52,17 @@ class OnboardingViewModel @Inject constructor(
                 confirmation.fill('\u0000')
             }
             when (result) {
-                is Outcome.Success -> {
-                    _state.value = OnboardingState()
-                    _effects.send(OnboardingEffect.VaultCreated)
-                }
+                // The passwords are dropped here; only the recovery key stays until the user has saved it.
+                is Outcome.Success -> _state.value = OnboardingState(recoveryKey = result.value)
                 is Outcome.Failure -> _state.update { it.copy(isLoading = false, error = result.error) }
             }
         }
+    }
+
+    private fun continueAfterRecovery() {
+        if (!_state.value.isRecoverySaved) return
+        // Clear the key from memory before leaving the screen.
+        _state.value = OnboardingState()
+        _effects.trySend(OnboardingEffect.VaultCreated)
     }
 }

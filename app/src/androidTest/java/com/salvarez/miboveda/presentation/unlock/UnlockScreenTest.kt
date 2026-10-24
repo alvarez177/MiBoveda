@@ -17,7 +17,7 @@ class UnlockScreenTest {
     @Test
     fun showsTheWrongPasswordError() {
         composeRule.setContent {
-            MiBovedaTheme { UnlockScreen(state = UnlockState(error = VaultError.WrongMasterPassword), onIntent = {}) }
+            MiBovedaTheme { UnlockScreen(state = UnlockState(error = VaultError.WrongMasterPassword), onIntent = {}, onForgotPassword = {}) }
         }
         composeRule.onNodeWithText("Desbloquea tu bóveda").assertIsDisplayed()
         composeRule.onNodeWithText("La contraseña maestra es incorrecta.").assertIsDisplayed()
@@ -27,9 +27,19 @@ class UnlockScreenTest {
     fun unlockButtonSendsTheSubmitIntent() {
         val intents = mutableListOf<UnlockIntent>()
         composeRule.setContent {
-            MiBovedaTheme { UnlockScreen(state = UnlockState(), onIntent = { intents += it }) }
+            MiBovedaTheme { UnlockScreen(state = UnlockState(), onIntent = { intents += it }, onForgotPassword = {}) }
         }
         composeRule.onNodeWithText("Desbloquear").performClick()
         assertEquals(listOf<UnlockIntent>(UnlockIntent.Submit), intents)
+    }
+
+    @Test
+    fun forgotPasswordOpensTheRecoveryFlow() {
+        var opened = 0
+        composeRule.setContent {
+            MiBovedaTheme { UnlockScreen(state = UnlockState(), onIntent = {}, onForgotPassword = { opened++ }) }
+        }
+        composeRule.onNodeWithText("¿Olvidaste tu contraseña?").performClick()
+        assertEquals(1, opened)
     }
 }

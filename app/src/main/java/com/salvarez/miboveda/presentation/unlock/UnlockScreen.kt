@@ -39,6 +39,7 @@ import com.salvarez.miboveda.presentation.theme.MiBovedaTheme
 @Composable
 fun UnlockRoute(
     onUnlocked: () -> Unit,
+    onForgotPassword: () -> Unit,
     viewModel: UnlockViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -67,13 +68,14 @@ fun UnlockRoute(
             viewModel.onIntent(UnlockIntent.BiometricClicked)
         }
     }
-    UnlockScreen(state = state, onIntent = viewModel::onIntent)
+    UnlockScreen(state = state, onIntent = viewModel::onIntent, onForgotPassword = onForgotPassword)
 }
 
 @Composable
 fun UnlockScreen(
     state: UnlockState,
     onIntent: (UnlockIntent) -> Unit,
+    onForgotPassword: () -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -96,6 +98,7 @@ fun UnlockScreen(
         TextButton(onClick = { onIntent(UnlockIntent.TogglePasswordVisibility) }) {
             Text(stringResource(if (state.isPasswordVisible) R.string.hide_password else R.string.show_password))
         }
+        TextButton(onClick = onForgotPassword) { Text(stringResource(R.string.forgot_password)) }
         if (state.biometricStatus == BiometricStatus.ENABLED) {
             OutlinedButton(
                 onClick = { onIntent(UnlockIntent.BiometricClicked) },
@@ -124,6 +127,6 @@ fun UnlockScreen(
 @Composable
 private fun UnlockScreenPreview() {
     MiBovedaTheme {
-        UnlockScreen(state = UnlockState(error = VaultError.WrongMasterPassword), onIntent = {})
+        UnlockScreen(state = UnlockState(error = VaultError.WrongMasterPassword), onIntent = {}, onForgotPassword = {})
     }
 }

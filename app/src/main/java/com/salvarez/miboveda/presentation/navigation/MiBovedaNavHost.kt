@@ -25,6 +25,7 @@ import com.salvarez.miboveda.presentation.detail.EntryDetailRoute
 import com.salvarez.miboveda.presentation.edit.EntryEditRoute
 import com.salvarez.miboveda.presentation.list.EntryListRoute
 import com.salvarez.miboveda.presentation.onboarding.OnboardingRoute
+import com.salvarez.miboveda.presentation.recovery.RecoveryRoute
 import com.salvarez.miboveda.presentation.settings.SettingsRoute
 import com.salvarez.miboveda.presentation.start.StartState
 import com.salvarez.miboveda.presentation.start.StartViewModel
@@ -32,6 +33,7 @@ import com.salvarez.miboveda.presentation.unlock.UnlockRoute
 
 private const val ROUTE_ONBOARDING = "onboarding"
 private const val ROUTE_UNLOCK = "unlock"
+private const val ROUTE_RECOVERY = "recovery"
 private const val ROUTE_ENTRIES = "entries"
 private const val ROUTE_SETTINGS = "settings"
 private const val ARG_ID = "id"
@@ -70,7 +72,16 @@ private fun VaultNavHost(startDestination: String, isUnlocked: Boolean) {
             OnboardingRoute(onVaultCreated = { navController.openEntriesAfter(ROUTE_ONBOARDING) })
         }
         composable(ROUTE_UNLOCK) {
-            UnlockRoute(onUnlocked = { navController.openEntriesAfter(ROUTE_UNLOCK) })
+            UnlockRoute(
+                onUnlocked = { navController.openEntriesAfter(ROUTE_UNLOCK) },
+                onForgotPassword = { navController.navigate(ROUTE_RECOVERY) },
+            )
+        }
+        composable(ROUTE_RECOVERY) {
+            RecoveryRoute(
+                onBack = { navController.popBackStack() },
+                onRecovered = { navController.openEntriesAfter(ROUTE_UNLOCK) },
+            )
         }
         composable(ROUTE_ENTRIES) {
             EntryListRoute(
