@@ -25,6 +25,7 @@ import com.salvarez.miboveda.presentation.detail.EntryDetailRoute
 import com.salvarez.miboveda.presentation.edit.EntryEditRoute
 import com.salvarez.miboveda.presentation.list.EntryListRoute
 import com.salvarez.miboveda.presentation.onboarding.OnboardingRoute
+import com.salvarez.miboveda.presentation.settings.SettingsRoute
 import com.salvarez.miboveda.presentation.start.StartState
 import com.salvarez.miboveda.presentation.start.StartViewModel
 import com.salvarez.miboveda.presentation.unlock.UnlockRoute
@@ -32,6 +33,7 @@ import com.salvarez.miboveda.presentation.unlock.UnlockRoute
 private const val ROUTE_ONBOARDING = "onboarding"
 private const val ROUTE_UNLOCK = "unlock"
 private const val ROUTE_ENTRIES = "entries"
+private const val ROUTE_SETTINGS = "settings"
 private const val ARG_ID = "id"
 private const val ROUTE_DETAIL = "entries/{$ARG_ID}"
 private const val ROUTE_EDIT = "entries/{$ARG_ID}/edit"
@@ -74,7 +76,11 @@ private fun VaultNavHost(startDestination: String, isUnlocked: Boolean) {
             EntryListRoute(
                 onAdd = { navController.navigate(editRoute(PasswordEntry.NEW_ID)) },
                 onEntryClick = { navController.navigate(detailRoute(it)) },
+                onOpenSettings = { navController.navigate(ROUTE_SETTINGS) },
             )
+        }
+        composable(ROUTE_SETTINGS) {
+            SettingsRoute(onBack = { navController.popBackStack() })
         }
         composable(ROUTE_DETAIL, arguments = idArgument) {
             EntryDetailRoute(

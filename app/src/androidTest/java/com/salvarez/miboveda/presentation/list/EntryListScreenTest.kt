@@ -17,7 +17,7 @@ class EntryListScreenTest {
     @Test
     fun showsTheEmptyMessage() {
         composeRule.setContent {
-            MiBovedaTheme { EntryListScreen(EntryListState(isLoading = false), onAdd = {}, onEntryClick = {}) }
+            MiBovedaTheme { EntryListScreen(EntryListState(isLoading = false), onAdd = {}, onEntryClick = {}, onOpenSettings = {}) }
         }
         composeRule.onNodeWithText("Aún no tienes contraseñas guardadas.", substring = true).assertIsDisplayed()
     }
@@ -31,7 +31,7 @@ class EntryListScreenTest {
             isLoading = false,
         )
         composeRule.setContent {
-            MiBovedaTheme { EntryListScreen(state, onAdd = { added++ }, onEntryClick = { opened += it }) }
+            MiBovedaTheme { EntryListScreen(state, onAdd = { added++ }, onEntryClick = { opened += it }, onOpenSettings = {}) }
         }
         composeRule.onNodeWithText("Bank").performClick()
         composeRule.onNodeWithText("Añadir").performClick()

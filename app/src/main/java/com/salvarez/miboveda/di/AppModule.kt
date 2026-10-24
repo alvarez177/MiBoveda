@@ -8,6 +8,10 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.salvarez.miboveda.data.crypto.Argon2KeyDerivation
 import com.salvarez.miboveda.data.crypto.KeyDerivation
+import com.salvarez.miboveda.data.crypto.BiometricAvailability
+import com.salvarez.miboveda.data.crypto.BiometricKeyStore
+import com.salvarez.miboveda.data.crypto.biometricAvailability
+import com.salvarez.miboveda.data.repository.BiometricRepositoryImpl
 import com.salvarez.miboveda.data.repository.EntryRepositoryImpl
 import com.salvarez.miboveda.data.repository.SettingsRepositoryImpl
 import com.salvarez.miboveda.data.repository.VaultRepositoryImpl
@@ -15,6 +19,7 @@ import com.salvarez.miboveda.domain.repository.SettingsRepository
 import com.salvarez.miboveda.domain.usecase.LockVault
 import com.salvarez.miboveda.domain.usecase.ObserveAutoLockTimeout
 import com.salvarez.miboveda.presentation.lock.AutoLockController
+import com.salvarez.miboveda.domain.repository.BiometricRepository
 import com.salvarez.miboveda.domain.repository.EntryRepository
 import com.salvarez.miboveda.domain.repository.VaultRepository
 import com.salvarez.miboveda.presentation.common.AndroidSensitiveClipboard
@@ -43,9 +48,20 @@ abstract class AppModule {
     abstract fun bindEntryRepository(impl: EntryRepositoryImpl): EntryRepository
 
     @Binds
+    abstract fun bindBiometricRepository(impl: BiometricRepositoryImpl): BiometricRepository
+
+    @Binds
     abstract fun bindSettingsRepository(impl: SettingsRepositoryImpl): SettingsRepository
 
     companion object {
+        @Provides
+        @Singleton
+        fun provideBiometricKeyStore() = BiometricKeyStore()
+
+        @Provides
+        fun provideBiometricAvailability(@ApplicationContext context: Context): BiometricAvailability =
+            biometricAvailability(context)
+
         @Provides
         @Singleton
         fun provideAutoLockController(

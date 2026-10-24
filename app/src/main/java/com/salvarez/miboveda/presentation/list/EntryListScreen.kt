@@ -14,6 +14,7 @@ import androidx.compose.material3.ListItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -35,10 +36,11 @@ import com.salvarez.miboveda.presentation.theme.MiBovedaTheme
 fun EntryListRoute(
     onAdd: () -> Unit,
     onEntryClick: (Long) -> Unit,
+    onOpenSettings: () -> Unit,
     viewModel: EntryListViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    EntryListScreen(state = state, onAdd = onAdd, onEntryClick = onEntryClick)
+    EntryListScreen(state = state, onAdd = onAdd, onEntryClick = onEntryClick, onOpenSettings = onOpenSettings)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -47,9 +49,15 @@ fun EntryListScreen(
     state: EntryListState,
     onAdd: () -> Unit,
     onEntryClick: (Long) -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.entries_title)) }) },
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.entries_title)) },
+                actions = { TextButton(onClick = onOpenSettings) { Text(stringResource(R.string.settings_action)) } },
+            )
+        },
         floatingActionButton = {
             ExtendedFloatingActionButton(onClick = onAdd) { Text(stringResource(R.string.add_entry)) }
         },
@@ -97,6 +105,7 @@ private fun EntryListScreenPreview() {
             ),
             onAdd = {},
             onEntryClick = {},
+            onOpenSettings = {},
         )
     }
 }
@@ -109,6 +118,7 @@ private fun EntryListErrorPreview() {
             state = EntryListState(isLoading = false, error = VaultError.VaultLocked),
             onAdd = {},
             onEntryClick = {},
+            onOpenSettings = {},
         )
     }
 }
