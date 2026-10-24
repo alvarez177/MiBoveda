@@ -4,6 +4,7 @@ import com.salvarez.miboveda.domain.Outcome
 import com.salvarez.miboveda.domain.error.VaultError
 import com.salvarez.miboveda.domain.usecase.FakeVaultRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
@@ -12,6 +13,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
+@OptIn(ExperimentalCoroutinesApi::class)
 class StartViewModelTest {
     @Before
     fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())

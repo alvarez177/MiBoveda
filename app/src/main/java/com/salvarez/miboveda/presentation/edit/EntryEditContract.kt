@@ -23,7 +23,9 @@ data class EntryEditState(
 sealed interface EntryEditIntent {
     data class TitleChanged(val value: String) : EntryEditIntent
     data class UsernameChanged(val value: String) : EntryEditIntent
-    data class PasswordChanged(val value: String) : EntryEditIntent
+    data class PasswordChanged(val value: String) : EntryEditIntent {
+        override fun toString(): String = "PasswordChanged"
+    }
     data class UrlChanged(val value: String) : EntryEditIntent
     data class NotesChanged(val value: String) : EntryEditIntent
     data object TogglePasswordVisibility : EntryEditIntent

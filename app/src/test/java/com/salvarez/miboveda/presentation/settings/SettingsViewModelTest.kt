@@ -2,12 +2,16 @@ package com.salvarez.miboveda.presentation.settings
 
 import com.salvarez.miboveda.domain.Outcome
 import com.salvarez.miboveda.domain.error.VaultError
+import com.salvarez.miboveda.domain.model.AutoLockTimeout
 import com.salvarez.miboveda.domain.model.BiometricStatus
 import com.salvarez.miboveda.domain.usecase.DisableBiometric
 import com.salvarez.miboveda.domain.usecase.EnableBiometric
 import com.salvarez.miboveda.domain.usecase.FakeBiometricRepository
+import com.salvarez.miboveda.domain.usecase.FakeSettingsRepository
+import com.salvarez.miboveda.domain.usecase.ObserveAutoLockTimeout
 import com.salvarez.miboveda.domain.usecase.ObserveBiometricStatus
 import com.salvarez.miboveda.domain.usecase.PrepareBiometricEnrollment
+import com.salvarez.miboveda.domain.usecase.SetAutoLockTimeout
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
@@ -25,6 +29,7 @@ import org.junit.Test
 @OptIn(ExperimentalCoroutinesApi::class)
 class SettingsViewModelTest {
     private val biometrics = FakeBiometricRepository(BiometricStatus.AVAILABLE)
+    private val settings = FakeSettingsRepository()
 
     @Before
     fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -34,6 +39,8 @@ class SettingsViewModelTest {
 
     private fun viewModel() = SettingsViewModel(
         ObserveBiometricStatus(biometrics),
+        ObserveAutoLockTimeout(settings),
+        SetAutoLockTimeout(settings),
         PrepareBiometricEnrollment(biometrics),
         EnableBiometric(biometrics),
         DisableBiometric(biometrics),
@@ -98,6 +105,22 @@ class SettingsViewModelTest {
         vm.onIntent(SettingsIntent.ToggleBiometric(enable = false))
 
         assertEquals(1, biometrics.disableCalls)
+    }
+
+    @Test
+    fun `starts with the default timeout and stores the one the user picks`() = runTest {
+        val vm = viewModel()
+        assertEquals(AutoLockTimeout.IMMEDIATE, vm.state.value.autoLockTimeout)
+
+        vm.onIntent(SettingsIntent.SelectAutoLockTimeout(AutoLockTimeout.ONE_MINUTE))
+
+        assertEquals(AutoLockTimeout.ONE_MINUTE, vm.state.value.autoLockTimeout)
+        assertEquals(AutoLockTimeout.ONE_MINUTE, settings.autoLockTimeout.first())
+    }
+
+    @Test
+    fun `password intents do not leak the password`() {
+        assertFalse(SettingsIntent.PasswordChanged("s3cret-value").toString().contains("s3cret-value"))
     }
 
     @Test
