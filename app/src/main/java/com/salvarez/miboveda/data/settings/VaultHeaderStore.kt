@@ -8,7 +8,9 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import com.salvarez.miboveda.data.crypto.KdfParams
 import java.util.Base64
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 
 class VaultHeaderStore @Inject constructor(
     private val dataStore: DataStore<Preferences>,
@@ -25,6 +27,7 @@ class VaultHeaderStore @Inject constructor(
             ),
             salt = Base64.getDecoder().decode(prefs[SALT] ?: return null),
             wrappedDek = Base64.getDecoder().decode(prefs[WRAPPED_DEK] ?: return null),
+            recoveryWrappedDek = prefs[RECOVERY_WRAPPED_DEK]?.let { Base64.getDecoder().decode(it) },
         )
     }
 
@@ -36,7 +39,16 @@ class VaultHeaderStore @Inject constructor(
             prefs[PARALLELISM] = header.kdfParams.parallelism
             prefs[SALT] = Base64.getEncoder().encodeToString(header.salt)
             prefs[WRAPPED_DEK] = Base64.getEncoder().encodeToString(header.wrappedDek)
+            val recovery = header.recoveryWrappedDek
+            if (recovery != null) prefs[RECOVERY_WRAPPED_DEK] = Base64.getEncoder().encodeToString(recovery)
+            else prefs.remove(RECOVERY_WRAPPED_DEK)
         }
+    }
+
+    val hasRecoveryKey: Flow<Boolean> = dataStore.data.map { it[RECOVERY_WRAPPED_DEK] != null }
+
+    suspend fun saveRecovery(recoveryWrappedDek: ByteArray) {
+        dataStore.edit { it[RECOVERY_WRAPPED_DEK] = Base64.getEncoder().encodeToString(recoveryWrappedDek) }
     }
 
     private companion object {
@@ -46,5 +58,6 @@ class VaultHeaderStore @Inject constructor(
         val PARALLELISM = intPreferencesKey("kdf_parallelism")
         val SALT = stringPreferencesKey("kdf_salt")
         val WRAPPED_DEK = stringPreferencesKey("wrapped_dek")
+        val RECOVERY_WRAPPED_DEK = stringPreferencesKey("recovery_wrapped_dek")
     }
 }

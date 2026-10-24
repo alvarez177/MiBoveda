@@ -12,6 +12,16 @@ Estado a la fecha del paso 13. **Auto** = lo comprueba un test automático; **Ma
 | Sin criptografía propia: solo JCA, Android Keystore, SQLCipher y argon2kt | Revisión | Código |
 | La contraseña y las claves se borran de memoria tras usarse (`CharArray`/`ByteArray` rellenados con ceros) | Revisión | Código; ver limitaciones |
 
+## Clave de recuperación
+| Control | Estado | Cómo se comprueba |
+|---|---|---|
+| 256 bits aleatorios; solo se guarda la DEK envuelta con ella, nunca la clave | Auto | `VaultRepositoryImplTest`, `RecoveryKeyCodecTest` |
+| Recuperar fija una contraseña nueva, conserva los datos y deja la anterior sin efecto | Auto | `VaultRepositoryImplTest` |
+| Una clave mal escrita, ajena o antigua (tras generar otra) no sirve | Auto | `VaultRepositoryImplTest`, `RecoveryKeyCodecTest` |
+| No se puede salir de la pantalla de creación sin confirmar que se guardó | Auto | `OnboardingViewModelTest`, `OnboardingScreenTest` |
+| La clave no aparece en `toString` de estados e intents | Auto | `OnboardingViewModelTest`, `RecoveryViewModelTest`, `SettingsViewModelTest` |
+| El portapapeles se limpia a los 30 s tras copiar la clave | Manual (pendiente) | Igual que las contraseñas |
+
 ## Biometría
 | Control | Estado | Cómo se comprueba |
 |---|---|---|
@@ -48,10 +58,11 @@ Estado a la fecha del paso 13. **Auto** = lo comprueba un test automático; **Ma
 ## Limitaciones conocidas
 - Los campos de texto de Compose usan `String`, que no se puede borrar de memoria; se reduce el tiempo que viven pero no se elimina.
 - No hay bloqueo por intentos fallidos: Argon2id (~0,3 s en el emulador, más en teléfonos) es el único freno.
-- Hasta la Fase 2 no hay clave de recuperación: olvidar la contraseña maestra significa perder los datos.
+- Quien pierda a la vez la contraseña maestra y la clave de recuperación pierde los datos (no hay forma de saltárselo, es a propósito).
+- Si la app muere justo al crear la bóveda, antes de confirmar que se guardó la clave, esa clave se pierde; se genera otra desde Ajustes.
 - Si el sistema mata la app antes de 30 s, el portapapeles no se limpia solo.
 - Lo que haya sin guardar en un formulario se pierde al bloquear (a propósito).
 - Un dispositivo con root o malware con permisos de accesibilidad puede leer la pantalla; FLAG_SECURE no lo evita.
 
 ## Pendiente de la Fase 2
-Clave de recuperación (paso 14), exportación de backup cifrado (15) e importación (16).
+Exportación de backup cifrado (paso 15) e importación (16).

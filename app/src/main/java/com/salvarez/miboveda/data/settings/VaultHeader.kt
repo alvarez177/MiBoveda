@@ -8,6 +8,8 @@ class VaultHeader(
     val kdfParams: KdfParams,
     val salt: ByteArray,
     val wrappedDek: ByteArray,
+    /** The database key wrapped with the recovery key; null while no recovery key exists. */
+    val recoveryWrappedDek: ByteArray? = null,
 ) {
     companion object {
         const val CURRENT_VERSION = 1

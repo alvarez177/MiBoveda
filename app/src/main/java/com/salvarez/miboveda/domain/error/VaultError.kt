@@ -7,6 +7,8 @@ sealed interface VaultError {
     data object MasterPasswordMismatch : VaultError
     data object VaultNotCreated : VaultError
     data object VaultAlreadyExists : VaultError
+    data object InvalidRecoveryKey : VaultError
+    data object NoRecoveryKey : VaultError
     data object EntryNotFound : VaultError
     data object EntryTitleRequired : VaultError
     data object BiometricUnavailable : VaultError

@@ -38,4 +38,18 @@ class VaultHeaderStoreTest {
         assertArrayEquals(header.salt, read.salt)
         assertArrayEquals(header.wrappedDek, read.wrappedDek)
     }
+
+    @Test
+    fun `the recovery wrapper is stored, optional and replaceable`() = runTest {
+        val store = newStore()
+        val withoutRecovery = VaultHeader(1, KdfParams(3, 65_536, 1), byteArrayOf(1), byteArrayOf(2))
+        store.save(withoutRecovery)
+        assertNull(store.read()!!.recoveryWrappedDek)
+
+        store.saveRecovery(byteArrayOf(7, 7))
+        assertArrayEquals(byteArrayOf(7, 7), store.read()!!.recoveryWrappedDek)
+
+        store.save(VaultHeader(1, KdfParams(3, 65_536, 1), byteArrayOf(1), byteArrayOf(2), byteArrayOf(9)))
+        assertArrayEquals(byteArrayOf(9), store.read()!!.recoveryWrappedDek)
+    }
 }

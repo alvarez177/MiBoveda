@@ -6,10 +6,13 @@ import com.salvarez.miboveda.domain.Outcome
 import com.salvarez.miboveda.domain.error.VaultError
 import com.salvarez.miboveda.domain.usecase.DisableBiometric
 import com.salvarez.miboveda.domain.usecase.EnableBiometric
+import com.salvarez.miboveda.domain.usecase.GenerateRecoveryKey
 import com.salvarez.miboveda.domain.usecase.ObserveAutoLockTimeout
 import com.salvarez.miboveda.domain.usecase.ObserveBiometricStatus
+import com.salvarez.miboveda.domain.usecase.ObserveRecoveryKeyStatus
 import com.salvarez.miboveda.domain.usecase.PrepareBiometricEnrollment
 import com.salvarez.miboveda.domain.usecase.SetAutoLockTimeout
+import com.salvarez.miboveda.presentation.common.SensitiveClipboard
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.crypto.Cipher
 import javax.inject.Inject
@@ -27,6 +30,9 @@ import kotlinx.coroutines.launch
 class SettingsViewModel @Inject constructor(
     observeBiometricStatus: ObserveBiometricStatus,
     observeAutoLockTimeout: ObserveAutoLockTimeout,
+    observeRecoveryKeyStatus: ObserveRecoveryKeyStatus,
+    private val generateRecoveryKey: GenerateRecoveryKey,
+    private val clipboard: SensitiveClipboard,
     private val setAutoLockTimeout: SetAutoLockTimeout,
     private val prepareBiometricEnrollment: PrepareBiometricEnrollment,
     private val enableBiometric: EnableBiometric,
@@ -49,11 +55,17 @@ class SettingsViewModel @Inject constructor(
         observeAutoLockTimeout()
             .onEach { timeout -> _state.update { it.copy(autoLockTimeout = timeout) } }
             .launchIn(viewModelScope)
+        observeRecoveryKeyStatus()
+            .onEach { has -> _state.update { it.copy(hasRecoveryKey = has) } }
+            .launchIn(viewModelScope)
     }
 
     fun onIntent(intent: SettingsIntent) {
         when (intent) {
             is SettingsIntent.ToggleBiometric -> toggleBiometric(intent.enable)
+            SettingsIntent.RequestRecoveryKey -> askForPassword(PasswordDialogPurpose.RECOVERY_KEY)
+            SettingsIntent.CopyRecoveryKey -> _state.value.newRecoveryKey?.let { clipboard.copy("recovery", it.value) }
+            SettingsIntent.DismissRecoveryKey -> _state.update { it.copy(newRecoveryKey = null) }
             is SettingsIntent.SelectAutoLockTimeout -> viewModelScope.launch { setAutoLockTimeout(intent.timeout) }
             is SettingsIntent.PasswordChanged -> _state.update { it.copy(password = intent.value, error = null) }
             SettingsIntent.ConfirmPassword -> confirmPassword()
@@ -70,16 +82,43 @@ class SettingsViewModel @Inject constructor(
 
     private fun toggleBiometric(enable: Boolean) {
         if (_state.value.isBusy) return
-        if (enable) {
-            _state.update { it.copy(isPasswordDialogVisible = true, password = "", error = null) }
-        } else {
-            viewModelScope.launch { disableBiometric() }
+        if (enable) askForPassword(PasswordDialogPurpose.BIOMETRIC) else viewModelScope.launch { disableBiometric() }
+    }
+
+    private fun askForPassword(purpose: PasswordDialogPurpose) {
+        if (_state.value.isBusy) return
+        _state.update {
+            it.copy(isPasswordDialogVisible = true, passwordDialogPurpose = purpose, password = "", error = null)
         }
     }
 
     private fun confirmPassword() {
+        val purpose = _state.value.passwordDialogPurpose
         val password = _state.value.password.toCharArray()
         _state.update { it.copy(isPasswordDialogVisible = false, password = "", isBusy = true, error = null) }
+        when (purpose) {
+            PasswordDialogPurpose.BIOMETRIC -> prepareBiometric(password)
+            PasswordDialogPurpose.RECOVERY_KEY -> makeRecoveryKey(password)
+        }
+    }
+
+    private fun makeRecoveryKey(password: CharArray) {
+        viewModelScope.launch {
+            val result = try {
+                generateRecoveryKey(password)
+            } finally {
+                password.fill('\u0000')
+            }
+            _state.update {
+                when (result) {
+                    is Outcome.Success -> it.copy(isBusy = false, newRecoveryKey = result.value)
+                    is Outcome.Failure -> it.copy(isBusy = false, error = result.error)
+                }
+            }
+        }
+    }
+
+    private fun prepareBiometric(password: CharArray) {
         viewModelScope.launch {
             when (val result = prepareBiometricEnrollment(password)) {
                 is Outcome.Success -> {

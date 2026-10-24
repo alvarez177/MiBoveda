@@ -9,6 +9,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import com.salvarez.miboveda.domain.model.AutoLockTimeout
 import com.salvarez.miboveda.domain.model.BiometricStatus
+import com.salvarez.miboveda.domain.model.RecoveryKey
 import com.salvarez.miboveda.presentation.theme.MiBovedaTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -55,5 +56,24 @@ class SettingsScreenTest {
         show(SettingsState(biometricStatus = BiometricStatus.AVAILABLE, isPasswordDialogVisible = true))
 
         composeRule.onNodeWithText("Confirma tu contraseña maestra").assertIsDisplayed()
+    }
+
+    @Test
+    fun offersToGenerateARecoveryKeyWhenThereIsNone() {
+        val intents = mutableListOf<SettingsIntent>()
+        show(SettingsState(hasRecoveryKey = false), intents::add)
+
+        composeRule.onNodeWithText("Todavía no tienes clave de recuperación.").assertIsDisplayed()
+        composeRule.onNodeWithText("Generar clave").performClick()
+
+        assertEquals(listOf<SettingsIntent>(SettingsIntent.RequestRecoveryKey), intents)
+    }
+
+    @Test
+    fun showsTheNewRecoveryKeyInADialog() {
+        show(SettingsState(hasRecoveryKey = true, newRecoveryKey = RecoveryKey("ABCD-EFGH-IJKL-MNOP")))
+
+        composeRule.onNodeWithText("Tu clave de recuperación").assertIsDisplayed()
+        composeRule.onNodeWithText("ABCD-EFGH-IJKL-MNOP").assertIsDisplayed()
     }
 }

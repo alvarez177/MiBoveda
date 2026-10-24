@@ -15,7 +15,7 @@ El plan aprobado y el estado de cada paso están en `@docs/PLAN.md`. Léelo al e
 - Kotlin + Jetpack Compose + Material 3 (solo versiones estables), claro/oscuro. Un solo módulo `:app` con paquetes `domain` / `data` / `presentation` / `di`.
 - Clean Architecture + MVI sin framework: por pantalla `State`, `Intent`, `Effect`, `ViewModel` (`StateFlow` + `Channel`); sin clases base genéricas.
 - Errores: las excepciones técnicas (BD, cifrado, biometría, IO) se capturan en `data` y se traducen a `VaultError` (sealed). Los casos de uso devuelven `Outcome` y no lanzan hacia la UI. Nunca tragar `CancellationException`. Nunca registrar contraseñas, claves ni datos sensibles.
-- Seguridad: Room + SQLCipher; `KEK = Argon2id(contraseña maestra)` envuelve una `DEK` aleatoria que cifra la BD; Keystore/biometría solo envuelven la DEK como comodidad. Sin criptografía propia: librerías estándar.
+- Seguridad: Room + SQLCipher; `KEK = Argon2id(contraseña maestra)` envuelve una `DEK` aleatoria que cifra la BD; Keystore/biometría solo envuelven la DEK como comodidad, y una clave de recuperación de 256 bits la envuelve también. Sin criptografía propia: librerías estándar.
 
 ## Calidad de código
 - Idioma: respuestas, resúmenes y documentación en español; todo el código de implementación (identificadores, comentarios de código) en inglés.

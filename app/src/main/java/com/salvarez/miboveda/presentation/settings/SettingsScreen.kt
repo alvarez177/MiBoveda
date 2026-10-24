@@ -12,6 +12,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -35,6 +36,7 @@ import com.salvarez.miboveda.domain.model.AutoLockTimeout
 import com.salvarez.miboveda.domain.model.BiometricStatus
 import com.salvarez.miboveda.presentation.common.BackButton
 import com.salvarez.miboveda.presentation.common.PasswordTextField
+import com.salvarez.miboveda.presentation.common.RecoveryKeyPanel
 import com.salvarez.miboveda.presentation.common.labelRes
 import com.salvarez.miboveda.presentation.common.message
 import com.salvarez.miboveda.presentation.common.rememberBiometricAuthenticator
@@ -109,7 +111,16 @@ fun SettingsScreen(
             }
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             AutoLockSection(state.autoLockTimeout) { onIntent(SettingsIntent.SelectAutoLockTimeout(it)) }
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            RecoverySection(state.hasRecoveryKey, enabled = !state.isBusy) { onIntent(SettingsIntent.RequestRecoveryKey) }
         }
+    }
+    state.newRecoveryKey?.let {
+        RecoveryKeyDialog(
+            recoveryKey = it.value,
+            onCopy = { onIntent(SettingsIntent.CopyRecoveryKey) },
+            onDismiss = { onIntent(SettingsIntent.DismissRecoveryKey) },
+        )
     }
     if (state.isPasswordDialogVisible) {
         AlertDialog(
@@ -117,7 +128,15 @@ fun SettingsScreen(
             title = { Text(stringResource(R.string.biometric_password_dialog_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    Text(stringResource(R.string.biometric_password_dialog_message))
+                    Text(
+                        stringResource(
+                            if (state.passwordDialogPurpose == PasswordDialogPurpose.RECOVERY_KEY) {
+                                R.string.recovery_password_dialog_message
+                            } else {
+                                R.string.biometric_password_dialog_message
+                            },
+                        ),
+                    )
                     PasswordTextField(
                         value = state.password,
                         onValueChange = { onIntent(SettingsIntent.PasswordChanged(it)) },
@@ -138,6 +157,35 @@ fun SettingsScreen(
                 }
             },
         )
+    }
+}
+
+@Composable
+private fun RecoveryKeyDialog(recoveryKey: String, onCopy: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = {},
+        title = { Text(stringResource(R.string.recovery_key_dialog_title)) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text(stringResource(R.string.recovery_description))
+                RecoveryKeyPanel(recoveryKey = recoveryKey, onCopy = onCopy)
+            }
+        },
+        confirmButton = { TextButton(onClick = onDismiss) { Text(stringResource(R.string.recovery_key_saved)) } },
+    )
+}
+
+@Composable
+private fun RecoverySection(hasRecoveryKey: Boolean, enabled: Boolean, onGenerate: () -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(stringResource(R.string.recovery_setting_title), style = MaterialTheme.typography.titleMedium)
+        Text(
+            stringResource(if (hasRecoveryKey) R.string.recovery_setting_present else R.string.recovery_setting_missing),
+            style = MaterialTheme.typography.bodyMedium,
+        )
+        OutlinedButton(onClick = onGenerate, enabled = enabled) {
+            Text(stringResource(if (hasRecoveryKey) R.string.generate_new_recovery_key else R.string.generate_recovery_key))
+        }
     }
 }
 

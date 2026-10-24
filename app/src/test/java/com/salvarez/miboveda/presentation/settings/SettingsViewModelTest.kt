@@ -8,6 +8,10 @@ import com.salvarez.miboveda.domain.usecase.DisableBiometric
 import com.salvarez.miboveda.domain.usecase.EnableBiometric
 import com.salvarez.miboveda.domain.usecase.FakeBiometricRepository
 import com.salvarez.miboveda.domain.usecase.FakeSettingsRepository
+import com.salvarez.miboveda.domain.usecase.FakeVaultRepository
+import com.salvarez.miboveda.domain.usecase.GenerateRecoveryKey
+import com.salvarez.miboveda.domain.usecase.ObserveRecoveryKeyStatus
+import com.salvarez.miboveda.presentation.common.FakeSensitiveClipboard
 import com.salvarez.miboveda.domain.usecase.ObserveAutoLockTimeout
 import com.salvarez.miboveda.domain.usecase.ObserveBiometricStatus
 import com.salvarez.miboveda.domain.usecase.PrepareBiometricEnrollment
@@ -30,6 +34,8 @@ import org.junit.Test
 class SettingsViewModelTest {
     private val biometrics = FakeBiometricRepository(BiometricStatus.AVAILABLE)
     private val settings = FakeSettingsRepository()
+    private val vault = FakeVaultRepository()
+    private val clipboard = FakeSensitiveClipboard()
 
     @Before
     fun setUp() = Dispatchers.setMain(UnconfinedTestDispatcher())
@@ -40,6 +46,9 @@ class SettingsViewModelTest {
     private fun viewModel() = SettingsViewModel(
         ObserveBiometricStatus(biometrics),
         ObserveAutoLockTimeout(settings),
+        ObserveRecoveryKeyStatus(vault),
+        GenerateRecoveryKey(vault),
+        clipboard,
         SetAutoLockTimeout(settings),
         PrepareBiometricEnrollment(biometrics),
         EnableBiometric(biometrics),
@@ -119,8 +128,61 @@ class SettingsViewModelTest {
     }
 
     @Test
+    fun `generating a recovery key asks for the password and shows the key once`() = runTest {
+        val vm = viewModel()
+        assertFalse(vm.state.value.hasRecoveryKey)
+
+        vm.onIntent(SettingsIntent.RequestRecoveryKey)
+        assertTrue(vm.state.value.isPasswordDialogVisible)
+        assertEquals(PasswordDialogPurpose.RECOVERY_KEY, vm.state.value.passwordDialogPurpose)
+
+        vm.onIntent(SettingsIntent.PasswordChanged("my master password"))
+        vm.onIntent(SettingsIntent.ConfirmPassword)
+
+        assertEquals(FakeVaultRepository.SAMPLE_RECOVERY_KEY, vm.state.value.newRecoveryKey)
+        assertEquals(listOf("my master password"), vault.generatePasswords)
+        assertTrue(vm.state.value.hasRecoveryKey)
+        assertFalse(vm.state.value.isBusy)
+
+        vm.onIntent(SettingsIntent.CopyRecoveryKey)
+        assertEquals(listOf("recovery" to FakeVaultRepository.SAMPLE_RECOVERY_KEY.value), clipboard.copies)
+
+        vm.onIntent(SettingsIntent.DismissRecoveryKey)
+        assertEquals(null, vm.state.value.newRecoveryKey)
+    }
+
+    @Test
+    fun `a wrong password does not generate a recovery key`() = runTest {
+        val failing = FakeVaultRepository(generateResult = Outcome.Failure(VaultError.WrongMasterPassword))
+        val vm = SettingsViewModel(
+            ObserveBiometricStatus(biometrics),
+            ObserveAutoLockTimeout(settings),
+            ObserveRecoveryKeyStatus(failing),
+            GenerateRecoveryKey(failing),
+            clipboard,
+            SetAutoLockTimeout(settings),
+            PrepareBiometricEnrollment(biometrics),
+            EnableBiometric(biometrics),
+            DisableBiometric(biometrics),
+        )
+        vm.onIntent(SettingsIntent.RequestRecoveryKey)
+        vm.onIntent(SettingsIntent.PasswordChanged("wrong"))
+        vm.onIntent(SettingsIntent.ConfirmPassword)
+
+        assertEquals(VaultError.WrongMasterPassword, vm.state.value.error)
+        assertEquals(null, vm.state.value.newRecoveryKey)
+    }
+
+    @Test
     fun `password intents do not leak the password`() {
         assertFalse(SettingsIntent.PasswordChanged("s3cret-value").toString().contains("s3cret-value"))
+    }
+
+    @Test
+    fun `state toString does not leak the password or the recovery key`() {
+        val state = SettingsState(password = "s3cret-value", newRecoveryKey = FakeVaultRepository.SAMPLE_RECOVERY_KEY)
+        assertFalse(state.toString().contains(FakeVaultRepository.SAMPLE_RECOVERY_KEY.value))
+        assertFalse(state.toString().contains("s3cret-value"))
     }
 
     @Test
