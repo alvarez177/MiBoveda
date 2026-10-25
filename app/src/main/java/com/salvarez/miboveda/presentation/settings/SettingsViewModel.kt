@@ -6,6 +6,7 @@ import com.salvarez.miboveda.domain.Outcome
 import com.salvarez.miboveda.domain.error.VaultError
 import com.salvarez.miboveda.domain.usecase.DisableBiometric
 import com.salvarez.miboveda.domain.usecase.EnableBiometric
+import com.salvarez.miboveda.domain.usecase.ExportBackup
 import com.salvarez.miboveda.domain.usecase.GenerateRecoveryKey
 import com.salvarez.miboveda.domain.usecase.ObserveAutoLockTimeout
 import com.salvarez.miboveda.domain.usecase.ObserveBiometricStatus
@@ -13,7 +14,9 @@ import com.salvarez.miboveda.domain.usecase.ObserveRecoveryKeyStatus
 import com.salvarez.miboveda.domain.usecase.PrepareBiometricEnrollment
 import com.salvarez.miboveda.domain.usecase.SetAutoLockTimeout
 import com.salvarez.miboveda.presentation.common.SensitiveClipboard
+import com.salvarez.miboveda.presentation.lock.ExternalActivityGuard
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDate
 import javax.crypto.Cipher
 import javax.inject.Inject
 import kotlinx.coroutines.channels.Channel
@@ -37,6 +40,8 @@ class SettingsViewModel @Inject constructor(
     private val prepareBiometricEnrollment: PrepareBiometricEnrollment,
     private val enableBiometric: EnableBiometric,
     private val disableBiometric: DisableBiometric,
+    private val exportBackup: ExportBackup,
+    private val externalActivityGuard: ExternalActivityGuard,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SettingsState())
@@ -47,6 +52,9 @@ class SettingsViewModel @Inject constructor(
 
     // Kept only between checking the password and the biometric approval, then cleared.
     private var pendingPassword: CharArray? = null
+
+    // Where the backup will be written, between choosing the file and confirming the password.
+    private var pendingBackupUri: String? = null
 
     init {
         observeBiometricStatus()
@@ -64,12 +72,17 @@ class SettingsViewModel @Inject constructor(
         when (intent) {
             is SettingsIntent.ToggleBiometric -> toggleBiometric(intent.enable)
             SettingsIntent.RequestRecoveryKey -> askForPassword(PasswordDialogPurpose.RECOVERY_KEY)
+            SettingsIntent.RequestBackup -> requestBackup()
+            is SettingsIntent.BackupLocationChosen -> backupLocationChosen(intent.uri)
             SettingsIntent.CopyRecoveryKey -> _state.value.newRecoveryKey?.let { clipboard.copy("recovery", it.value) }
             SettingsIntent.DismissRecoveryKey -> _state.update { it.copy(newRecoveryKey = null) }
             is SettingsIntent.SelectAutoLockTimeout -> viewModelScope.launch { setAutoLockTimeout(intent.timeout) }
             is SettingsIntent.PasswordChanged -> _state.update { it.copy(password = intent.value, error = null) }
             SettingsIntent.ConfirmPassword -> confirmPassword()
-            SettingsIntent.DismissPasswordDialog -> _state.update { it.copy(isPasswordDialogVisible = false, password = "") }
+            SettingsIntent.DismissPasswordDialog -> {
+                pendingBackupUri = null
+                _state.update { it.copy(isPasswordDialogVisible = false, password = "") }
+            }
             is SettingsIntent.BiometricApproved -> completeEnrollment(intent.cipher)
             is SettingsIntent.BiometricFailed -> {
                 clearPendingPassword()
@@ -99,6 +112,44 @@ class SettingsViewModel @Inject constructor(
         when (purpose) {
             PasswordDialogPurpose.BIOMETRIC -> prepareBiometric(password)
             PasswordDialogPurpose.RECOVERY_KEY -> makeRecoveryKey(password)
+            PasswordDialogPurpose.EXPORT_BACKUP -> makeBackup(password)
+        }
+    }
+
+    private fun requestBackup() {
+        if (_state.value.isBusy) return
+        _state.update { it.copy(isBackupSaved = false, error = null) }
+        // The file picker is another app on screen: do not lock the vault while the user is choosing a file.
+        externalActivityGuard.allowExternalActivity()
+        _effects.trySend(SettingsEffect.PickBackupLocation("MiBoveda-${LocalDate.now()}.backup"))
+    }
+
+    private fun backupLocationChosen(uri: String?) {
+        if (uri == null) return
+        pendingBackupUri = uri
+        askForPassword(PasswordDialogPurpose.EXPORT_BACKUP)
+    }
+
+    private fun makeBackup(password: CharArray) {
+        val uri = pendingBackupUri
+        pendingBackupUri = null
+        if (uri == null) {
+            password.fill('\u0000')
+            _state.update { it.copy(isBusy = false) }
+            return
+        }
+        viewModelScope.launch {
+            val result = try {
+                exportBackup(password, uri)
+            } finally {
+                password.fill('\u0000')
+            }
+            _state.update {
+                when (result) {
+                    is Outcome.Success -> it.copy(isBusy = false, isBackupSaved = true)
+                    is Outcome.Failure -> it.copy(isBusy = false, error = result.error)
+                }
+            }
         }
     }
 

@@ -6,11 +6,13 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
+import com.salvarez.miboveda.data.backup.BackupCodec
 import com.salvarez.miboveda.data.crypto.Argon2KeyDerivation
 import com.salvarez.miboveda.data.crypto.KeyDerivation
 import com.salvarez.miboveda.data.crypto.BiometricAvailability
 import com.salvarez.miboveda.data.crypto.BiometricKeyStore
 import com.salvarez.miboveda.data.crypto.biometricAvailability
+import com.salvarez.miboveda.data.repository.BackupRepositoryImpl
 import com.salvarez.miboveda.data.repository.BiometricRepositoryImpl
 import com.salvarez.miboveda.data.repository.EntryRepositoryImpl
 import com.salvarez.miboveda.data.repository.SettingsRepositoryImpl
@@ -19,6 +21,8 @@ import com.salvarez.miboveda.domain.repository.SettingsRepository
 import com.salvarez.miboveda.domain.usecase.LockVault
 import com.salvarez.miboveda.domain.usecase.ObserveAutoLockTimeout
 import com.salvarez.miboveda.presentation.lock.AutoLockController
+import com.salvarez.miboveda.presentation.lock.ExternalActivityGuard
+import com.salvarez.miboveda.domain.repository.BackupRepository
 import com.salvarez.miboveda.domain.repository.BiometricRepository
 import com.salvarez.miboveda.domain.repository.EntryRepository
 import com.salvarez.miboveda.domain.repository.VaultRepository
@@ -48,6 +52,9 @@ abstract class AppModule {
     abstract fun bindEntryRepository(impl: EntryRepositoryImpl): EntryRepository
 
     @Binds
+    abstract fun bindBackupRepository(impl: BackupRepositoryImpl): BackupRepository
+
+    @Binds
     abstract fun bindBiometricRepository(impl: BiometricRepositoryImpl): BiometricRepository
 
     @Binds
@@ -57,6 +64,12 @@ abstract class AppModule {
         @Provides
         @Singleton
         fun provideBiometricKeyStore() = BiometricKeyStore()
+
+        @Provides
+        fun provideBackupCodec() = BackupCodec()
+
+        @Provides
+        fun provideExternalActivityGuard(controller: AutoLockController): ExternalActivityGuard = controller
 
         @Provides
         fun provideBiometricAvailability(@ApplicationContext context: Context): BiometricAvailability =

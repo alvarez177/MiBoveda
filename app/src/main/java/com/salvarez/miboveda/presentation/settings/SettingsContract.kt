@@ -7,7 +7,7 @@ import com.salvarez.miboveda.domain.model.RecoveryKey
 import javax.crypto.Cipher
 
 /** What the master password dialog is being asked for. */
-enum class PasswordDialogPurpose { BIOMETRIC, RECOVERY_KEY }
+enum class PasswordDialogPurpose { BIOMETRIC, RECOVERY_KEY, EXPORT_BACKUP }
 
 data class SettingsState(
     val biometricStatus: BiometricStatus = BiometricStatus.UNAVAILABLE,
@@ -19,6 +19,7 @@ data class SettingsState(
     val passwordDialogPurpose: PasswordDialogPurpose = PasswordDialogPurpose.BIOMETRIC,
     val password: String = "",
     val isBusy: Boolean = false,
+    val isBackupSaved: Boolean = false,
     val error: VaultError? = null,
 ) {
     // Keeps the password out of logs.
@@ -28,6 +29,10 @@ data class SettingsState(
 sealed interface SettingsIntent {
     data class ToggleBiometric(val enable: Boolean) : SettingsIntent
     data object RequestRecoveryKey : SettingsIntent
+    data object RequestBackup : SettingsIntent
+
+    /** [uri] is null when the user closed the file picker without choosing a place. */
+    data class BackupLocationChosen(val uri: String?) : SettingsIntent
     data object CopyRecoveryKey : SettingsIntent
     data object DismissRecoveryKey : SettingsIntent
     data class SelectAutoLockTimeout(val timeout: AutoLockTimeout) : SettingsIntent
@@ -42,4 +47,5 @@ sealed interface SettingsIntent {
 
 sealed interface SettingsEffect {
     data class ShowBiometricPrompt(val cipher: Cipher) : SettingsEffect
+    data class PickBackupLocation(val suggestedName: String) : SettingsEffect
 }

@@ -23,32 +23,52 @@ class AutoLockController(
     private val clipboard: SensitiveClipboard,
     private val scope: CoroutineScope,
     private val elapsedRealtimeMillis: () -> Long,
-) {
+) : ExternalActivityGuard {
     private var pendingLock: Job? = null
     private var backgroundedAt: Long? = null
+    private var lockAfterMillis: Long? = null
+    private var externalActivityExpected = false
+
+    override fun allowExternalActivity() {
+        externalActivityExpected = true
+    }
 
     fun onAppBackgrounded() {
         if (!vaultRepository.isUnlocked.value) return
         backgroundedAt = elapsedRealtimeMillis()
+        val withGrace = externalActivityExpected
+        externalActivityExpected = false
         pendingLock?.cancel()
         pendingLock = scope.launch {
-            delay(observeTimeout().first().millis)
+            val configured = observeTimeout().first().millis
+            val waitMillis = if (withGrace) maxOf(configured, EXTERNAL_ACTIVITY_GRACE_MILLIS) else configured
+            lockAfterMillis = waitMillis
+            delay(waitMillis)
             lock()
         }
     }
 
     fun onAppForegrounded() {
+        externalActivityExpected = false
         pendingLock?.cancel()
         val since = backgroundedAt ?: return
+        val knownWait = lockAfterMillis
         backgroundedAt = null
+        lockAfterMillis = null
         scope.launch {
-            if (elapsedRealtimeMillis() - since >= observeTimeout().first().millis) lock()
+            val waitMillis = knownWait ?: observeTimeout().first().millis
+            if (elapsedRealtimeMillis() - since >= waitMillis) lock()
         }
     }
 
     private suspend fun lock() {
         backgroundedAt = null
+        lockAfterMillis = null
         clipboard.clear()
         lockVault()
+    }
+
+    companion object {
+        const val EXTERNAL_ACTIVITY_GRACE_MILLIS = 120_000L
     }
 }

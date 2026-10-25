@@ -7,6 +7,7 @@ import androidx.compose.ui.test.isToggleable
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import com.salvarez.miboveda.domain.model.AutoLockTimeout
 import com.salvarez.miboveda.domain.model.BiometricStatus
 import com.salvarez.miboveda.domain.model.RecoveryKey
@@ -46,7 +47,7 @@ class SettingsScreenTest {
         val intents = mutableListOf<SettingsIntent>()
         show(SettingsState(autoLockTimeout = AutoLockTimeout.IMMEDIATE), intents::add)
 
-        composeRule.onNodeWithText("Después de 5 minutos").performClick()
+        composeRule.onNodeWithText("Después de 5 minutos").performScrollTo().performClick()
 
         assertEquals(listOf<SettingsIntent>(SettingsIntent.SelectAutoLockTimeout(AutoLockTimeout.FIVE_MINUTES)), intents)
     }
@@ -63,8 +64,8 @@ class SettingsScreenTest {
         val intents = mutableListOf<SettingsIntent>()
         show(SettingsState(hasRecoveryKey = false), intents::add)
 
-        composeRule.onNodeWithText("Todavía no tienes clave de recuperación.").assertIsDisplayed()
-        composeRule.onNodeWithText("Generar clave").performClick()
+        composeRule.onNodeWithText("Todavía no tienes clave de recuperación.").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Generar clave").performScrollTo().performClick()
 
         assertEquals(listOf<SettingsIntent>(SettingsIntent.RequestRecoveryKey), intents)
     }
@@ -75,5 +76,23 @@ class SettingsScreenTest {
 
         composeRule.onNodeWithText("Tu clave de recuperación").assertIsDisplayed()
         composeRule.onNodeWithText("ABCD-EFGH-IJKL-MNOP").assertIsDisplayed()
+    }
+
+    @Test
+    fun theBackupSectionExplainsAndSendsTheRequest() {
+        val intents = mutableListOf<SettingsIntent>()
+        show(SettingsState(), intents::add)
+
+        composeRule.onNodeWithText("Copia de seguridad").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Exportar copia cifrada").performScrollTo().performClick()
+
+        assertEquals(listOf<SettingsIntent>(SettingsIntent.RequestBackup), intents)
+    }
+
+    @Test
+    fun confirmsWhenTheBackupWasSaved() {
+        show(SettingsState(isBackupSaved = true))
+
+        composeRule.onNodeWithText("Copia guardada correctamente.").performScrollTo().assertIsDisplayed()
     }
 }
