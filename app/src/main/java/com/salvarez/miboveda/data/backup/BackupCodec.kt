@@ -61,7 +61,14 @@ class BackupCodec {
             if (version != FORMAT_VERSION) throw BackupFormatException("Unsupported backup version $version")
             if (input.readByte() != KDF_ARGON2ID) throw BackupFormatException("Unknown key derivation")
             val params = KdfParams(input.readInt(), input.readInt(), input.readInt())
+            // A tampered file must not be able to ask for an absurd amount of memory or time.
+            if (params.iterations !in 1..MAX_ITERATIONS || params.memoryKib !in MIN_MEMORY_KIB..MAX_MEMORY_KIB ||
+                params.parallelism !in 1..MAX_PARALLELISM
+            ) {
+                throw BackupFormatException("Unreasonable key derivation settings")
+            }
             val saltSize = input.readUnsignedByte()
+            if (saltSize < MIN_SALT_SIZE) throw BackupFormatException("The salt is too short")
             val salt = ByteArray(saltSize).also(input::readFully)
             return BackupHeader(params, salt, size = bytes.size - input.available())
         } catch (e: EOFException) {
@@ -137,6 +144,11 @@ class BackupCodec {
         val MAGIC = "MIBOVEDA".toByteArray(Charsets.US_ASCII)
         const val FORMAT_VERSION = 1
         const val KDF_ARGON2ID: Byte = 1
+        const val MAX_ITERATIONS = 20
+        const val MIN_MEMORY_KIB = 8
+        const val MAX_MEMORY_KIB = 262_144
+        const val MAX_PARALLELISM = 16
+        const val MIN_SALT_SIZE = 8
         const val IV_SIZE_BYTES = 12
         const val TAG_SIZE_BITS = 128
         const val TRANSFORMATION = "AES/GCM/NoPadding"

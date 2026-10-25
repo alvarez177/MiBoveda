@@ -38,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.salvarez.miboveda.R
 import com.salvarez.miboveda.domain.model.AutoLockTimeout
 import com.salvarez.miboveda.domain.model.BiometricStatus
+import com.salvarez.miboveda.domain.model.ImportSummary
 import com.salvarez.miboveda.presentation.common.BackButton
 import com.salvarez.miboveda.presentation.common.PasswordTextField
 import com.salvarez.miboveda.presentation.common.RecoveryKeyPanel
@@ -56,12 +57,16 @@ fun SettingsRoute(
     val backupPicker = rememberLauncherForActivityResult(
         ActivityResultContracts.CreateDocument("application/octet-stream"),
     ) { uri -> viewModel.onIntent(SettingsIntent.BackupLocationChosen(uri?.toString())) }
+    val importPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri -> viewModel.onIntent(SettingsIntent.ImportFileChosen(uri?.toString())) }
     val promptTitle = stringResource(R.string.biometric_prompt_enable_title)
     val promptNegative = stringResource(R.string.cancel)
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
             when (effect) {
                 is SettingsEffect.PickBackupLocation -> backupPicker.launch(effect.suggestedName)
+                SettingsEffect.PickBackupToImport -> importPicker.launch(arrayOf("*/*"))
                 is SettingsEffect.ShowBiometricPrompt -> authenticator.authenticate(
                     cipher = effect.cipher,
                     title = promptTitle,
@@ -126,7 +131,13 @@ fun SettingsScreen(
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
             RecoverySection(state.hasRecoveryKey, enabled = !state.isBusy) { onIntent(SettingsIntent.RequestRecoveryKey) }
             HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-            BackupSection(state.isBackupSaved, enabled = !state.isBusy) { onIntent(SettingsIntent.RequestBackup) }
+            BackupSection(
+                isSaved = state.isBackupSaved,
+                importSummary = state.importSummary,
+                enabled = !state.isBusy,
+                onExport = { onIntent(SettingsIntent.RequestBackup) },
+                onImport = { onIntent(SettingsIntent.RequestImport) },
+            )
         }
     }
     state.newRecoveryKey?.let {
@@ -147,6 +158,7 @@ fun SettingsScreen(
                             when (state.passwordDialogPurpose) {
                                 PasswordDialogPurpose.RECOVERY_KEY -> R.string.recovery_password_dialog_message
                                 PasswordDialogPurpose.EXPORT_BACKUP -> R.string.backup_password_dialog_message
+                                PasswordDialogPurpose.IMPORT_BACKUP -> R.string.backup_import_password_dialog_message
                                 PasswordDialogPurpose.BIOMETRIC -> R.string.biometric_password_dialog_message
                             },
                         ),
@@ -190,13 +202,26 @@ private fun RecoveryKeyDialog(recoveryKey: String, onCopy: () -> Unit, onDismiss
 }
 
 @Composable
-private fun BackupSection(isSaved: Boolean, enabled: Boolean, onExport: () -> Unit) {
+private fun BackupSection(
+    isSaved: Boolean,
+    importSummary: ImportSummary?,
+    enabled: Boolean,
+    onExport: () -> Unit,
+    onImport: () -> Unit,
+) {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Text(stringResource(R.string.backup_title), style = MaterialTheme.typography.titleMedium)
         Text(stringResource(R.string.backup_description), style = MaterialTheme.typography.bodyMedium)
         OutlinedButton(onClick = onExport, enabled = enabled) { Text(stringResource(R.string.backup_export)) }
         if (isSaved) {
             Text(stringResource(R.string.backup_saved), color = MaterialTheme.colorScheme.primary)
+        }
+        OutlinedButton(onClick = onImport, enabled = enabled) { Text(stringResource(R.string.backup_import)) }
+        importSummary?.let {
+            Text(
+                stringResource(R.string.backup_import_summary, it.added, it.skipped),
+                color = MaterialTheme.colorScheme.primary,
+            )
         }
     }
 }

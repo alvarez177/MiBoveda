@@ -48,6 +48,11 @@ class EntryRepositoryImpl @Inject constructor(
         if (rowId == UPDATED_ROW) toSave.id else rowId
     }
 
+    override suspend fun addImported(entries: List<PasswordEntry>): Outcome<Unit> = outcomeOf(::errorFor) {
+        // One insert for the whole list, so a failure leaves nothing half imported.
+        session.entryDao().insertAll(entries.map { it.copy(id = PasswordEntry.NEW_ID).toEntity() })
+    }
+
     override suspend fun delete(id: Long): Outcome<Unit> =
         outcomeOf(::errorFor) { session.entryDao().deleteById(id) }.map { }
 

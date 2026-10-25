@@ -61,6 +61,22 @@ class EntryRepositoryImplTest {
     }
 
     @Test
+    fun importedEntriesAreAddedAsNewOnesKeepingTheirDates() = runTest {
+        session.open(key)
+        val imported = listOf(
+            PasswordEntry(id = 77, title = "Bank", username = "ana", password = "x", updatedAt = java.time.Instant.ofEpochMilli(1_000)),
+            PasswordEntry(id = 77, title = "Mail", username = "ana", password = "y", updatedAt = java.time.Instant.ofEpochMilli(2_000)),
+        )
+
+        assertEquals(Outcome.Success(Unit), repository.addImported(imported))
+
+        val stored = entries()
+        assertEquals(listOf("Bank", "Mail"), stored.map { it.title })
+        assertEquals(2, stored.map { it.id }.toSet().size)
+        assertEquals(listOf(1_000L, 2_000L), stored.map { it.updatedAt.toEpochMilli() })
+    }
+
+    @Test
     fun operationsWhileLockedFailWithVaultLocked() = runTest {
         assertEquals(Outcome.Failure(VaultError.VaultLocked), repository.observeAll().first())
         assertEquals(

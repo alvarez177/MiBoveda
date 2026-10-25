@@ -8,7 +8,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.map
 
-class FakeEntryRepository(initial: List<PasswordEntry> = emptyList()) : EntryRepository {
+class FakeEntryRepository(
+    initial: List<PasswordEntry> = emptyList(),
+    private val importResult: Outcome<Unit> = Outcome.Success(Unit),
+) : EntryRepository {
     private val entries = MutableStateFlow(initial)
 
     val current: List<PasswordEntry> get() = entries.value
@@ -32,6 +35,13 @@ class FakeEntryRepository(initial: List<PasswordEntry> = emptyList()) : EntryRep
 
     override suspend fun delete(id: Long): Outcome<Unit> {
         entries.value = entries.value.filterNot { it.id == id }
+        return Outcome.Success(Unit)
+    }
+
+    override suspend fun addImported(entries: List<PasswordEntry>): Outcome<Unit> {
+        if (importResult is Outcome.Failure) return importResult
+        var nextId = (this.entries.value.maxOfOrNull { it.id } ?: 0) + 1
+        this.entries.value = this.entries.value + entries.map { it.copy(id = nextId++) }
         return Outcome.Success(Unit)
     }
 }

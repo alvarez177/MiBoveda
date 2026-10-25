@@ -31,6 +31,10 @@ Estado a la fecha del paso 13. **Auto** = lo comprueba un test automático; **Ma
 | Con la bóveda bloqueada no se escribe nada | Auto | `BackupRepositoryImplTest` |
 | El selector de archivos no bloquea la bóveda a mitad de la exportación (gracia única de 2 min) | Auto + Manual | `AutoLockControllerTest`; emulador con el selector real |
 | La copia exportada se puede descifrar con la contraseña maestra y contiene todas las entradas | Auto | `BackupRepositoryImplTest` |
+| Importar abre y descifra la copia antes de tocar nada; una contraseña incorrecta o un archivo alterado no cambian la bóveda | Auto | `BackupRepositoryImplTest`, `RestoreBackupTest`, `ImportBackupTest` |
+| Una cabecera manipulada no puede pedir costes absurdos de Argon2 ni una sal corta; los archivos enormes se rechazan | Auto | `BackupCodecTest` |
+| Importar dos veces la misma copia no duplica entradas | Auto | `ImportBackupTest` |
+| Restaurar en un dispositivo nuevo crea una bóveda con una clave de recuperación nueva | Auto + Manual | `RestoreBackupTest`; emulador con el selector real |
 | El archivo exportado queda donde el usuario lo elija: protegerlo es cosa suya (está cifrado, pero una contraseña maestra débil lo hace atacable offline) | Limitación | |
 
 ## Biometría
@@ -76,4 +80,4 @@ Estado a la fecha del paso 13. **Auto** = lo comprueba un test automático; **Ma
 - Un dispositivo con root o malware con permisos de accesibilidad puede leer la pantalla; FLAG_SECURE no lo evita.
 
 ## Pendiente de la Fase 2
-Importación de la copia de seguridad (paso 16).
+Nada: los 16 pasos del plan están hechos. Ver `docs/PENDIENTES.md`.

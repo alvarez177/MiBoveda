@@ -31,6 +31,9 @@ por cada entrada:
 ```
 Los identificadores internos no se guardan: al importar se crean nuevos.
 
+## Límites al leer
+Para que un archivo manipulado no pueda agotar la memoria o el tiempo del dispositivo, el lector rechaza (`CorruptBackup`) cabeceras con más de 20 iteraciones, memoria fuera de 8 KiB–256 MiB, más de 16 hilos o una sal de menos de 8 bytes, y archivos de más de 32 MiB. Estos límites se comprueban **antes** de derivar ninguna clave.
+
 ## Qué garantiza y qué no
 - Sin la contraseña maestra con la que se hizo la copia no se puede leer ni verificar ningún dato; el archivo no contiene texto legible.
 - Una contraseña incorrecta, un archivo modificado o una cabecera alterada fallan de la misma forma (la etiqueta GCM no coincide).

@@ -20,6 +20,7 @@ fun VaultError.message(): String = when (this) {
     VaultError.EntryTitleRequired -> stringResource(R.string.error_entry_title_required)
     VaultError.BiometricInvalidated -> stringResource(R.string.error_biometric_invalidated)
     VaultError.BiometricUnavailable -> stringResource(R.string.error_biometric_unavailable)
+    VaultError.WrongBackupPassword -> stringResource(R.string.error_wrong_backup_password)
     VaultError.CorruptBackup -> stringResource(R.string.error_corrupt_backup)
     VaultError.StorageFailure -> stringResource(R.string.error_storage_failure)
 }

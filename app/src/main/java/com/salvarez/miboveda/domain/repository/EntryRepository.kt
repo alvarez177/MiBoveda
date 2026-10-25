@@ -14,4 +14,7 @@ interface EntryRepository {
     suspend fun save(entry: PasswordEntry): Outcome<Long>
 
     suspend fun delete(id: Long): Outcome<Unit>
+
+    /** Adds entries as new ones in a single step, keeping their modification dates. All or none. */
+    suspend fun addImported(entries: List<PasswordEntry>): Outcome<Unit>
 }

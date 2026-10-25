@@ -85,6 +85,15 @@
     <string name="backup_saved">Copia guardada correctamente.</string>
     <string name="backup_password_dialog_message">Hace falta para cifrar la copia con tu contraseña maestra.</string>
 
+    <string name="backup_import">Importar copia de seguridad</string>
+    <string name="backup_import_password_dialog_message">Escribe la contraseña maestra que tenías cuando hiciste esa copia.</string>
+    <string name="backup_import_summary">Importación terminada: %1$d nuevas, %2$d ya estaban.</string>
+    <string name="restore_link">Restaurar desde una copia de seguridad</string>
+    <string name="restore_title">Restaura tu bóveda</string>
+    <string name="restore_description">Elige el archivo de copia y escribe la contraseña maestra que tenías al exportarlo. Esa contraseña será la de la nueva bóveda.</string>
+    <string name="restore_password_label">Contraseña maestra de la copia</string>
+    <string name="restore_vault">Restaurar bóveda</string>
+
     <string name="error_wrong_master_password">La contraseña maestra es incorrecta.</string>
     <string name="error_vault_locked">La bóveda está bloqueada.</string>
     <string name="error_master_password_too_short">La contraseña maestra debe tener al menos %1$d caracteres.</string>
@@ -97,6 +106,7 @@
     <string name="error_entry_not_found">No se encontró la entrada.</string>
     <string name="error_biometric_invalidated">Cambió la biometría registrada en el dispositivo. Desbloquea con tu contraseña y vuelve a activarla en Ajustes.</string>
     <string name="error_biometric_unavailable">La biometría no está disponible en este dispositivo.</string>
-    <string name="error_corrupt_backup">El archivo de respaldo está dañado.</string>
+    <string name="error_wrong_backup_password">No se pudo abrir la copia: la contraseña no es la que tenía la bóveda al exportarla, o el archivo fue modificado.</string>
+    <string name="error_corrupt_backup">El archivo no es una copia de seguridad de MiBoveda o está dañado.</string>
     <string name="error_storage_failure">No se pudo acceder al almacenamiento. Inténtalo de nuevo.</string>
 </resources>

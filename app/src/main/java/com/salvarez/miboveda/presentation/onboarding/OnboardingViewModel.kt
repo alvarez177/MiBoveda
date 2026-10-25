@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.salvarez.miboveda.domain.Outcome
 import com.salvarez.miboveda.domain.usecase.CreateVault
+import com.salvarez.miboveda.domain.usecase.RestoreBackup
 import com.salvarez.miboveda.presentation.common.SensitiveClipboard
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
@@ -18,6 +19,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class OnboardingViewModel @Inject constructor(
     private val createVault: CreateVault,
+    private val restoreBackup: RestoreBackup,
     private val clipboard: SensitiveClipboard,
 ) : ViewModel() {
 
@@ -33,6 +35,11 @@ class OnboardingViewModel @Inject constructor(
             is OnboardingIntent.ConfirmationChanged -> _state.update { it.copy(confirmation = intent.value, error = null) }
             OnboardingIntent.TogglePasswordVisibility -> _state.update { it.copy(isPasswordVisible = !it.isPasswordVisible) }
             OnboardingIntent.Submit -> submit()
+            OnboardingIntent.RestoreClicked -> _effects.trySend(OnboardingEffect.PickBackupFile)
+            is OnboardingIntent.BackupFileChosen -> intent.uri?.let { uri ->
+                _state.update { it.copy(restoreFileUri = uri, password = "", confirmation = "", error = null) }
+            }
+            OnboardingIntent.CancelRestore -> _state.update { it.copy(restoreFileUri = null, password = "", error = null) }
             OnboardingIntent.CopyRecoveryKey -> _state.value.recoveryKey?.let { clipboard.copy("recovery", it.value) }
             OnboardingIntent.ToggleRecoverySaved -> _state.update { it.copy(isRecoverySaved = !it.isRecoverySaved) }
             OnboardingIntent.ContinueAfterRecovery -> continueAfterRecovery()
@@ -45,8 +52,9 @@ class OnboardingViewModel @Inject constructor(
         viewModelScope.launch {
             val password = _state.value.password.toCharArray()
             val confirmation = _state.value.confirmation.toCharArray()
+            val restoreUri = _state.value.restoreFileUri
             val result = try {
-                createVault(password, confirmation)
+                if (restoreUri != null) restoreBackup(password, restoreUri) else createVault(password, confirmation)
             } finally {
                 password.fill('\u0000')
                 confirmation.fill('\u0000')
