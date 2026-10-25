@@ -1,5 +1,7 @@
 package com.salvarez.miboveda.presentation.onboarding
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -44,10 +46,14 @@ fun OnboardingRoute(
     viewModel: OnboardingViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val backupPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument(),
+    ) { uri -> viewModel.onIntent(OnboardingIntent.BackupFileChosen(uri?.toString())) }
     LaunchedEffect(viewModel) {
         viewModel.effects.collect { effect ->
             when (effect) {
                 OnboardingEffect.VaultCreated -> onVaultCreated()
+                OnboardingEffect.PickBackupFile -> backupPicker.launch(arrayOf("*/*"))
             }
         }
     }
@@ -78,6 +84,10 @@ fun OnboardingScreen(
 
 @Composable
 private fun PasswordStep(state: OnboardingState, onIntent: (OnboardingIntent) -> Unit) {
+    if (state.restoreFileUri != null) {
+        RestoreStep(state, onIntent)
+        return
+    }
     Text(stringResource(R.string.onboarding_title), style = MaterialTheme.typography.headlineMedium)
     Text(stringResource(R.string.onboarding_description), style = MaterialTheme.typography.bodyMedium)
 
@@ -114,6 +124,43 @@ private fun PasswordStep(state: OnboardingState, onIntent: (OnboardingIntent) ->
         } else {
             Text(stringResource(R.string.create_vault))
         }
+    }
+    TextButton(onClick = { onIntent(OnboardingIntent.RestoreClicked) }, modifier = Modifier.fillMaxWidth()) {
+        Text(stringResource(R.string.restore_link))
+    }
+}
+
+@Composable
+private fun RestoreStep(state: OnboardingState, onIntent: (OnboardingIntent) -> Unit) {
+    Text(stringResource(R.string.restore_title), style = MaterialTheme.typography.headlineMedium)
+    Text(stringResource(R.string.restore_description), style = MaterialTheme.typography.bodyMedium)
+    PasswordTextField(
+        value = state.password,
+        onValueChange = { onIntent(OnboardingIntent.PasswordChanged(it)) },
+        label = stringResource(R.string.restore_password_label),
+        isVisible = state.isPasswordVisible,
+        imeAction = ImeAction.Done,
+        onImeAction = { onIntent(OnboardingIntent.Submit) },
+    )
+    TextButton(onClick = { onIntent(OnboardingIntent.TogglePasswordVisibility) }) {
+        Text(stringResource(if (state.isPasswordVisible) R.string.hide_password else R.string.show_password))
+    }
+    state.error?.let {
+        Text(it.message(), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
+    }
+    Button(
+        onClick = { onIntent(OnboardingIntent.Submit) },
+        enabled = !state.isLoading,
+        modifier = Modifier.fillMaxWidth(),
+    ) {
+        if (state.isLoading) {
+            CircularProgressIndicator(modifier = Modifier.size(20.dp))
+        } else {
+            Text(stringResource(R.string.restore_vault))
+        }
+    }
+    TextButton(onClick = { onIntent(OnboardingIntent.CancelRestore) }, modifier = Modifier.fillMaxWidth()) {
+        Text(stringResource(R.string.cancel))
     }
 }
 

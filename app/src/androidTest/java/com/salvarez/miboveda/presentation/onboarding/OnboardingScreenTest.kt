@@ -9,6 +9,7 @@ import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import com.salvarez.miboveda.domain.error.VaultError
 import com.salvarez.miboveda.domain.model.RecoveryKey
 import com.salvarez.miboveda.presentation.theme.MiBovedaTheme
@@ -62,5 +63,28 @@ class OnboardingScreenTest {
         composeRule.onNodeWithText("Copiar clave").performClick()
 
         assertEquals(listOf(OnboardingIntent.ContinueAfterRecovery, OnboardingIntent.CopyRecoveryKey), intents)
+    }
+
+    @Test
+    fun offersToRestoreFromABackup() {
+        val intents = mutableListOf<OnboardingIntent>()
+        composeRule.setContent {
+            MiBovedaTheme { OnboardingScreen(state = OnboardingState(), onIntent = { intents += it }) }
+        }
+        composeRule.onNodeWithText("Restaurar desde una copia de seguridad").performScrollTo().performClick()
+
+        assertEquals(listOf<OnboardingIntent>(OnboardingIntent.RestoreClicked), intents)
+    }
+
+    @Test
+    fun theRestoreFormAsksOnlyForTheBackupPassword() {
+        composeRule.setContent {
+            MiBovedaTheme {
+                OnboardingScreen(state = OnboardingState(restoreFileUri = "content://files/backup"), onIntent = {})
+            }
+        }
+        composeRule.onNodeWithText("Restaura tu bóveda").assertIsDisplayed()
+        composeRule.onNodeWithText("Contraseña maestra de la copia").assertIsDisplayed()
+        composeRule.onNodeWithText("Restaurar bóveda").performScrollTo().assertIsDisplayed()
     }
 }

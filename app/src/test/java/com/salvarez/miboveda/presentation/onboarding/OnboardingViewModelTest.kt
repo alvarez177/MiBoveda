@@ -3,6 +3,9 @@ package com.salvarez.miboveda.presentation.onboarding
 import com.salvarez.miboveda.domain.Outcome
 import com.salvarez.miboveda.domain.error.VaultError
 import com.salvarez.miboveda.domain.usecase.CreateVault
+import com.salvarez.miboveda.domain.usecase.FakeBackupRepository
+import com.salvarez.miboveda.domain.usecase.FakeEntryRepository
+import com.salvarez.miboveda.domain.usecase.RestoreBackup
 import com.salvarez.miboveda.domain.usecase.FakeVaultRepository
 import com.salvarez.miboveda.presentation.common.FakeSensitiveClipboard
 import kotlinx.coroutines.Dispatchers
@@ -30,8 +33,11 @@ class OnboardingViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
+    private val backups = FakeBackupRepository()
+    private val entries = FakeEntryRepository()
+
     private fun viewModel(repository: FakeVaultRepository = FakeVaultRepository()) =
-        OnboardingViewModel(CreateVault(repository), clipboard)
+        OnboardingViewModel(CreateVault(repository), RestoreBackup(backups, repository, entries), clipboard)
 
     private fun OnboardingViewModel.fill(password: String, confirmation: String) {
         onIntent(OnboardingIntent.PasswordChanged(password))
@@ -115,5 +121,58 @@ class OnboardingViewModelTest {
         assertFalse(vm.state.value.toString().contains(FakeVaultRepository.SAMPLE_RECOVERY_KEY.value))
         assertFalse(OnboardingIntent.PasswordChanged("s3cret-value").toString().contains("s3cret-value"))
         assertFalse(FakeVaultRepository.SAMPLE_RECOVERY_KEY.toString().contains("ABCD"))
+    }
+
+    @Test
+    fun `asking to restore opens the file picker`() = runTest {
+        val vm = viewModel()
+        vm.onIntent(OnboardingIntent.RestoreClicked)
+
+        assertEquals(OnboardingEffect.PickBackupFile, vm.effects.first())
+    }
+
+    @Test
+    fun `closing the picker without a file keeps the normal form`() = runTest {
+        val vm = viewModel()
+        vm.onIntent(OnboardingIntent.BackupFileChosen(null))
+
+        assertNull(vm.state.value.restoreFileUri)
+    }
+
+    @Test
+    fun `restoring asks only for the backup password and then shows the new recovery key`() = runTest {
+        backups.readResult = Outcome.Success(listOf(com.salvarez.miboveda.domain.model.PasswordEntry(title = "Bank", username = "ana", password = "x")))
+        val repository = FakeVaultRepository()
+        val vm = viewModel(repository)
+        vm.onIntent(OnboardingIntent.BackupFileChosen("content://files/backup"))
+        vm.onIntent(OnboardingIntent.PasswordChanged("the old master password"))
+        vm.onIntent(OnboardingIntent.Submit)
+
+        assertEquals(listOf("the old master password" to "content://files/backup"), backups.reads)
+        assertEquals(FakeVaultRepository.SAMPLE_RECOVERY_KEY, vm.state.value.recoveryKey)
+        assertEquals(listOf("Bank"), entries.current.map { it.title })
+        assertNull(vm.state.value.restoreFileUri)
+    }
+
+    @Test
+    fun `a wrong backup password shows the error and keeps the restore form`() = runTest {
+        backups.readResult = Outcome.Failure(VaultError.WrongBackupPassword)
+        val vm = viewModel()
+        vm.onIntent(OnboardingIntent.BackupFileChosen("content://files/backup"))
+        vm.onIntent(OnboardingIntent.PasswordChanged("wrong"))
+        vm.onIntent(OnboardingIntent.Submit)
+
+        assertEquals(VaultError.WrongBackupPassword, vm.state.value.error)
+        assertEquals("content://files/backup", vm.state.value.restoreFileUri)
+        assertFalse(vm.state.value.isLoading)
+    }
+
+    @Test
+    fun `cancelling the restore goes back to creating a vault`() = runTest {
+        val vm = viewModel()
+        vm.onIntent(OnboardingIntent.BackupFileChosen("content://files/backup"))
+        vm.onIntent(OnboardingIntent.CancelRestore)
+
+        assertNull(vm.state.value.restoreFileUri)
     }
 }

@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performScrollTo
 import com.salvarez.miboveda.domain.model.AutoLockTimeout
 import com.salvarez.miboveda.domain.model.BiometricStatus
+import com.salvarez.miboveda.domain.model.ImportSummary
 import com.salvarez.miboveda.domain.model.RecoveryKey
 import com.salvarez.miboveda.presentation.theme.MiBovedaTheme
 import org.junit.Assert.assertEquals
@@ -94,5 +95,16 @@ class SettingsScreenTest {
         show(SettingsState(isBackupSaved = true))
 
         composeRule.onNodeWithText("Copia guardada correctamente.").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun theImportButtonSendsTheRequestAndTheSummaryIsShown() {
+        val intents = mutableListOf<SettingsIntent>()
+        show(SettingsState(importSummary = ImportSummary(added = 3, skipped = 2)), intents::add)
+
+        composeRule.onNodeWithText("Importación terminada: 3 nuevas, 2 ya estaban.").performScrollTo().assertIsDisplayed()
+        composeRule.onNodeWithText("Importar copia de seguridad").performScrollTo().performClick()
+
+        assertEquals(listOf<SettingsIntent>(SettingsIntent.RequestImport), intents)
     }
 }

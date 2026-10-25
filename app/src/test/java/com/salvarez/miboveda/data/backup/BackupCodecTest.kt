@@ -99,4 +99,23 @@ class BackupCodecTest {
         assertThrows(BackupFormatException::class.java) { codec.readHeader(bytes.copyOf(20)) }
         assertThrows(BackupFormatException::class.java) { roundTrip(bytes.copyOf(codec.readHeader(bytes).size + 5)) }
     }
+
+    @Test
+    fun `a header asking for absurd key derivation costs is rejected before any work is done`() {
+        listOf(
+            KdfParams(iterations = 1_000, memoryKib = 65_536, parallelism = 1),
+            KdfParams(iterations = 3, memoryKib = 4_000_000, parallelism = 1),
+            KdfParams(iterations = 3, memoryKib = 65_536, parallelism = 500),
+            KdfParams(iterations = 0, memoryKib = 65_536, parallelism = 1),
+        ).forEach { bad ->
+            val bytes = codec.encode(entries, key, salt, bad)
+            assertThrows(BackupFormatException::class.java) { codec.readHeader(bytes) }
+        }
+    }
+
+    @Test
+    fun `a very short salt is rejected`() {
+        val bytes = codec.encode(entries, key, ByteArray(2), params)
+        assertThrows(BackupFormatException::class.java) { codec.readHeader(bytes) }
+    }
 }

@@ -8,6 +8,7 @@ import com.salvarez.miboveda.domain.usecase.DisableBiometric
 import com.salvarez.miboveda.domain.usecase.EnableBiometric
 import com.salvarez.miboveda.domain.usecase.ExportBackup
 import com.salvarez.miboveda.domain.usecase.GenerateRecoveryKey
+import com.salvarez.miboveda.domain.usecase.ImportBackup
 import com.salvarez.miboveda.domain.usecase.ObserveAutoLockTimeout
 import com.salvarez.miboveda.domain.usecase.ObserveBiometricStatus
 import com.salvarez.miboveda.domain.usecase.ObserveRecoveryKeyStatus
@@ -41,6 +42,7 @@ class SettingsViewModel @Inject constructor(
     private val enableBiometric: EnableBiometric,
     private val disableBiometric: DisableBiometric,
     private val exportBackup: ExportBackup,
+    private val importBackup: ImportBackup,
     private val externalActivityGuard: ExternalActivityGuard,
 ) : ViewModel() {
 
@@ -55,6 +57,7 @@ class SettingsViewModel @Inject constructor(
 
     // Where the backup will be written, between choosing the file and confirming the password.
     private var pendingBackupUri: String? = null
+    private var pendingImportUri: String? = null
 
     init {
         observeBiometricStatus()
@@ -74,6 +77,8 @@ class SettingsViewModel @Inject constructor(
             SettingsIntent.RequestRecoveryKey -> askForPassword(PasswordDialogPurpose.RECOVERY_KEY)
             SettingsIntent.RequestBackup -> requestBackup()
             is SettingsIntent.BackupLocationChosen -> backupLocationChosen(intent.uri)
+            SettingsIntent.RequestImport -> requestImport()
+            is SettingsIntent.ImportFileChosen -> importFileChosen(intent.uri)
             SettingsIntent.CopyRecoveryKey -> _state.value.newRecoveryKey?.let { clipboard.copy("recovery", it.value) }
             SettingsIntent.DismissRecoveryKey -> _state.update { it.copy(newRecoveryKey = null) }
             is SettingsIntent.SelectAutoLockTimeout -> viewModelScope.launch { setAutoLockTimeout(intent.timeout) }
@@ -81,6 +86,7 @@ class SettingsViewModel @Inject constructor(
             SettingsIntent.ConfirmPassword -> confirmPassword()
             SettingsIntent.DismissPasswordDialog -> {
                 pendingBackupUri = null
+                pendingImportUri = null
                 _state.update { it.copy(isPasswordDialogVisible = false, password = "") }
             }
             is SettingsIntent.BiometricApproved -> completeEnrollment(intent.cipher)
@@ -113,6 +119,7 @@ class SettingsViewModel @Inject constructor(
             PasswordDialogPurpose.BIOMETRIC -> prepareBiometric(password)
             PasswordDialogPurpose.RECOVERY_KEY -> makeRecoveryKey(password)
             PasswordDialogPurpose.EXPORT_BACKUP -> makeBackup(password)
+            PasswordDialogPurpose.IMPORT_BACKUP -> runImport(password)
         }
     }
 
@@ -128,6 +135,43 @@ class SettingsViewModel @Inject constructor(
         if (uri == null) return
         pendingBackupUri = uri
         askForPassword(PasswordDialogPurpose.EXPORT_BACKUP)
+    }
+
+    private fun requestImport() {
+        if (_state.value.isBusy) return
+        _state.update { it.copy(importSummary = null, isBackupSaved = false, error = null) }
+        // The file picker is another app on screen: do not lock the vault while the user is choosing a file.
+        externalActivityGuard.allowExternalActivity()
+        _effects.trySend(SettingsEffect.PickBackupToImport)
+    }
+
+    private fun importFileChosen(uri: String?) {
+        if (uri == null) return
+        pendingImportUri = uri
+        askForPassword(PasswordDialogPurpose.IMPORT_BACKUP)
+    }
+
+    private fun runImport(password: CharArray) {
+        val uri = pendingImportUri
+        pendingImportUri = null
+        if (uri == null) {
+            password.fill('\u0000')
+            _state.update { it.copy(isBusy = false) }
+            return
+        }
+        viewModelScope.launch {
+            val result = try {
+                importBackup(password, uri)
+            } finally {
+                password.fill('\u0000')
+            }
+            _state.update {
+                when (result) {
+                    is Outcome.Success -> it.copy(isBusy = false, importSummary = result.value)
+                    is Outcome.Failure -> it.copy(isBusy = false, error = result.error)
+                }
+            }
+        }
     }
 
     private fun makeBackup(password: CharArray) {

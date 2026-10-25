@@ -8,6 +8,8 @@ import com.salvarez.miboveda.domain.usecase.DisableBiometric
 import com.salvarez.miboveda.domain.usecase.EnableBiometric
 import com.salvarez.miboveda.domain.usecase.ExportBackup
 import com.salvarez.miboveda.domain.usecase.FakeBackupRepository
+import com.salvarez.miboveda.domain.usecase.FakeEntryRepository
+import com.salvarez.miboveda.domain.usecase.ImportBackup
 import com.salvarez.miboveda.domain.usecase.FakeBiometricRepository
 import com.salvarez.miboveda.domain.usecase.FakeSettingsRepository
 import com.salvarez.miboveda.domain.usecase.FakeVaultRepository
@@ -39,6 +41,7 @@ class SettingsViewModelTest {
     private val settings = FakeSettingsRepository()
     private val vault = FakeVaultRepository()
     private val backup = FakeBackupRepository()
+    private val entries = FakeEntryRepository()
     private var guardCalls = 0
     private val guard = ExternalActivityGuard { guardCalls++ }
     private val clipboard = FakeSensitiveClipboard()
@@ -60,6 +63,7 @@ class SettingsViewModelTest {
         EnableBiometric(biometrics),
         DisableBiometric(biometrics),
         ExportBackup(backup),
+        ImportBackup(backup, entries),
         guard,
     )
 
@@ -173,6 +177,7 @@ class SettingsViewModelTest {
             EnableBiometric(biometrics),
             DisableBiometric(biometrics),
             ExportBackup(backup),
+            ImportBackup(backup, entries),
             guard,
         )
         vm.onIntent(SettingsIntent.RequestRecoveryKey)
@@ -230,6 +235,53 @@ class SettingsViewModelTest {
         assertEquals(VaultError.WrongMasterPassword, vm.state.value.error)
         assertFalse(vm.state.value.isBackupSaved)
         assertFalse(vm.state.value.isBusy)
+    }
+
+    @Test
+    fun `asking to import opens the file picker and gives the system screen a grace period`() = runTest {
+        val vm = viewModel()
+        vm.onIntent(SettingsIntent.RequestImport)
+
+        assertEquals(SettingsEffect.PickBackupToImport, vm.effects.first())
+        assertEquals(1, guardCalls)
+        assertFalse(vm.state.value.isPasswordDialogVisible)
+    }
+
+    @Test
+    fun `closing the import picker without a file does nothing`() = runTest {
+        val vm = viewModel()
+        vm.onIntent(SettingsIntent.ImportFileChosen(null))
+
+        assertFalse(vm.state.value.isPasswordDialogVisible)
+        assertTrue(backup.reads.isEmpty())
+    }
+
+    @Test
+    fun `a chosen file plus the password imports it and shows the summary`() = runTest {
+        backup.readResult = Outcome.Success(listOf(com.salvarez.miboveda.domain.model.PasswordEntry(title = "Bank", username = "ana", password = "x")))
+        val vm = viewModel()
+        vm.onIntent(SettingsIntent.ImportFileChosen("content://files/backup"))
+        assertEquals(PasswordDialogPurpose.IMPORT_BACKUP, vm.state.value.passwordDialogPurpose)
+
+        vm.onIntent(SettingsIntent.PasswordChanged("the old master password"))
+        vm.onIntent(SettingsIntent.ConfirmPassword)
+
+        assertEquals(listOf("the old master password" to "content://files/backup"), backup.reads)
+        assertEquals(com.salvarez.miboveda.domain.model.ImportSummary(added = 1, skipped = 0), vm.state.value.importSummary)
+        assertFalse(vm.state.value.isBusy)
+        assertEquals("", vm.state.value.password)
+    }
+
+    @Test
+    fun `a backup that cannot be opened shows the error and no summary`() = runTest {
+        backup.readResult = Outcome.Failure(VaultError.CorruptBackup)
+        val vm = viewModel()
+        vm.onIntent(SettingsIntent.ImportFileChosen("content://files/backup"))
+        vm.onIntent(SettingsIntent.PasswordChanged("pw"))
+        vm.onIntent(SettingsIntent.ConfirmPassword)
+
+        assertEquals(VaultError.CorruptBackup, vm.state.value.error)
+        assertEquals(null, vm.state.value.importSummary)
     }
 
     @Test

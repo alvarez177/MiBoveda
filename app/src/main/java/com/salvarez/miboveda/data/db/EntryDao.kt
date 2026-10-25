@@ -1,6 +1,7 @@
 package com.salvarez.miboveda.data.db
 
 import androidx.room.Dao
+import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Upsert
 import kotlinx.coroutines.flow.Flow
@@ -15,6 +16,9 @@ interface EntryDao {
 
     @Query("SELECT * FROM entries WHERE id = :id")
     fun observeById(id: Long): Flow<EntryEntity?>
+
+    @Insert
+    suspend fun insertAll(entries: List<EntryEntity>)
 
     /** Returns the new row id on insert, or -1 when an existing row was updated. */
     @Upsert

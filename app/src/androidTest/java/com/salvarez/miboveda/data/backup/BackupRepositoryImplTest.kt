@@ -110,6 +110,70 @@ class BackupRepositoryImplTest {
         assertEquals(first, backupFile.length())
     }
 
+    @Test
+    fun anExportedBackupCanBeReadBack() = runTest {
+        createVaultWithEntries()
+        backups.export(password.copyOf(), destination)
+
+        val result = backups.read(password.copyOf(), destination) as Outcome.Success
+
+        assertEquals(listOf("Bank", "Mail"), result.value.map { it.title })
+        assertEquals(listOf("s3cret-value", "other-secret"), result.value.map { it.password })
+        assertEquals(listOf(1L, 2L), result.value.map { it.updatedAt.toEpochMilli() })
+    }
+
+    @Test
+    fun readingWorksWithoutAnyVault() = runTest {
+        createVaultWithEntries()
+        backups.export(password.copyOf(), destination)
+        session.close()
+        cleanUpVault()
+
+        val result = backups.read(password.copyOf(), destination)
+
+        assertEquals(2, (result as Outcome.Success).value.size)
+    }
+
+    @Test
+    fun aWrongPasswordIsReportedAsSuch() = runTest {
+        createVaultWithEntries()
+        backups.export(password.copyOf(), destination)
+
+        assertEquals(
+            Outcome.Failure(VaultError.WrongBackupPassword),
+            backups.read("another wrong password".toCharArray(), destination),
+        )
+    }
+
+    @Test
+    fun aFileThatIsNotABackupIsCorrupt() = runTest {
+        backupFile.writeText("this is just a text file, not a backup at all")
+
+        assertEquals(Outcome.Failure(VaultError.CorruptBackup), backups.read(password.copyOf(), destination))
+    }
+
+    @Test
+    fun aModifiedBackupDoesNotOpen() = runTest {
+        createVaultWithEntries()
+        backups.export(password.copyOf(), destination)
+        val bytes = backupFile.readBytes()
+        bytes[bytes.lastIndex] = (bytes.last().toInt() xor 1).toByte()
+        backupFile.writeBytes(bytes)
+
+        assertEquals(Outcome.Failure(VaultError.WrongBackupPassword), backups.read(password.copyOf(), destination))
+    }
+
+    @Test
+    fun aMissingFileIsAStorageFailure() = runTest {
+        assertEquals(Outcome.Failure(VaultError.StorageFailure), backups.read(password.copyOf(), destination))
+    }
+
+    private fun cleanUpVault() {
+        prefsFile.delete()
+        val db = session.databaseFile()
+        listOf("", "-wal", "-shm", "-journal").forEach { File(db.path + it).delete() }
+    }
+
     private fun cleanUp() {
         backupFile.delete()
         prefsFile.delete()
