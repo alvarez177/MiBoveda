@@ -1,5 +1,12 @@
 package com.salvarez.miboveda.presentation.navigation
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -29,6 +36,8 @@ import com.salvarez.miboveda.presentation.recovery.RecoveryRoute
 import com.salvarez.miboveda.presentation.settings.SettingsRoute
 import com.salvarez.miboveda.presentation.start.StartState
 import com.salvarez.miboveda.presentation.start.StartViewModel
+import com.salvarez.miboveda.presentation.theme.Motion
+import com.salvarez.miboveda.presentation.ui.VaultBackground
 import com.salvarez.miboveda.presentation.unlock.UnlockRoute
 
 private const val ROUTE_ONBOARDING = "onboarding"
@@ -47,12 +56,15 @@ private fun editRoute(id: Long) = "entries/$id/edit"
 fun MiBovedaNavHost(startViewModel: StartViewModel = hiltViewModel()) {
     val startState by startViewModel.state.collectAsStateWithLifecycle()
     val isUnlocked by startViewModel.isUnlocked.collectAsStateWithLifecycle()
-    when (val start = startState) {
-        StartState.Loading -> CenteredBox { CircularProgressIndicator() }
-        is StartState.Failed -> CenteredBox { Text(start.error.message(), color = MaterialTheme.colorScheme.error) }
-        StartState.NoVault -> VaultNavHost(ROUTE_ONBOARDING, isUnlocked)
-        StartState.VaultLocked -> VaultNavHost(ROUTE_UNLOCK, isUnlocked)
-        StartState.VaultUnlocked -> VaultNavHost(ROUTE_ENTRIES, isUnlocked)
+    // The backdrop stays put while screens move over it, so changing screens feels like moving inside one place.
+    VaultBackground {
+        when (val start = startState) {
+            StartState.Loading -> CenteredBox { CircularProgressIndicator() }
+            is StartState.Failed -> CenteredBox { Text(start.error.message(), color = MaterialTheme.colorScheme.error) }
+            StartState.NoVault -> VaultNavHost(ROUTE_ONBOARDING, isUnlocked)
+            StartState.VaultLocked -> VaultNavHost(ROUTE_UNLOCK, isUnlocked)
+            StartState.VaultUnlocked -> VaultNavHost(ROUTE_ENTRIES, isUnlocked)
+        }
     }
 }
 
@@ -67,7 +79,36 @@ private fun VaultNavHost(startDestination: String, isUnlocked: Boolean) {
         }
     }
     val idArgument = listOf(navArgument(ARG_ID) { type = NavType.LongType })
-    NavHost(navController = navController, startDestination = startDestination) {
+    NavHost(
+        navController = navController,
+        startDestination = startDestination,
+        enterTransition = {
+            if (isVaultOpening(initialState.destination.route, targetState.destination.route)) {
+                // Coming in from the lock screens: the vault opens, and the list grows into view.
+                fadeIn(tween(Motion.Long, delayMillis = 80)) +
+                    scaleIn(tween(Motion.Long, easing = Motion.EmphasizedDecelerate), initialScale = 0.92f)
+            } else {
+                fadeIn(tween(Motion.Medium, delayMillis = 60)) +
+                    slideInHorizontally(tween(Motion.Long, easing = Motion.EmphasizedDecelerate)) { it / 6 }
+            }
+        },
+        exitTransition = {
+            if (isVaultOpening(initialState.destination.route, targetState.destination.route)) {
+                fadeOut(tween(Motion.Medium)) + scaleOut(tween(Motion.Long, easing = Motion.EmphasizedAccelerate), targetScale = 1.08f)
+            } else {
+                fadeOut(tween(Motion.Short)) +
+                    slideOutHorizontally(tween(Motion.Medium, easing = Motion.EmphasizedAccelerate)) { -it / 8 }
+            }
+        },
+        popEnterTransition = {
+            fadeIn(tween(Motion.Medium, delayMillis = 60)) +
+                slideInHorizontally(tween(Motion.Long, easing = Motion.EmphasizedDecelerate)) { -it / 6 }
+        },
+        popExitTransition = {
+            fadeOut(tween(Motion.Short)) +
+                slideOutHorizontally(tween(Motion.Medium, easing = Motion.EmphasizedAccelerate)) { it / 6 }
+        },
+    ) {
         composable(ROUTE_ONBOARDING) {
             OnboardingRoute(onVaultCreated = { navController.openEntriesAfter(ROUTE_ONBOARDING) })
         }
@@ -107,6 +148,10 @@ private fun VaultNavHost(startDestination: String, isUnlocked: Boolean) {
         }
     }
 }
+
+private val LOCK_SCREENS = setOf(ROUTE_ONBOARDING, ROUTE_UNLOCK, ROUTE_RECOVERY)
+
+private fun isVaultOpening(from: String?, to: String?) = from in LOCK_SCREENS && to == ROUTE_ENTRIES
 
 private fun NavController.openEntriesAfter(route: String) {
     navigate(ROUTE_ENTRIES) { popUpTo(route) { inclusive = true } }

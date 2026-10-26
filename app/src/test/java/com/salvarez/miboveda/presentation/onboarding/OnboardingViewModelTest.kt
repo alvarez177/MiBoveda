@@ -175,4 +175,16 @@ class OnboardingViewModelTest {
 
         assertNull(vm.state.value.restoreFileUri)
     }
+
+    @Test
+    fun `the recovery key stays covered until the user reveals it`() = runTest {
+        val vm = viewModel()
+        vm.fill("a long enough password", "a long enough password")
+        vm.onIntent(OnboardingIntent.Submit)
+        assertFalse(vm.state.value.isRecoveryRevealed)
+
+        vm.onIntent(OnboardingIntent.RevealRecoveryKey)
+
+        assertEquals(true, vm.state.value.isRecoveryRevealed)
+    }
 }

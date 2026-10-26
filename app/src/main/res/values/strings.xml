@@ -60,6 +60,7 @@
 
     <string name="recovery_title">Guarda tu clave de recuperación</string>
     <string name="recovery_description">Es la única forma de volver a entrar si olvidas tu contraseña maestra. Anótala o imprímela y guárdala fuera de este teléfono. No volverás a verla.</string>
+    <string name="recovery_reveal_hint">Toca para mostrar tu clave</string>
     <string name="copy_recovery_key">Copiar clave</string>
     <string name="recovery_saved_confirmation">He guardado mi clave de recuperación en un lugar seguro</string>
     <string name="continue_action">Continuar</string>

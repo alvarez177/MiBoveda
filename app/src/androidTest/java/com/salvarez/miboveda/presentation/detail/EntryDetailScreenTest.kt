@@ -1,6 +1,5 @@
 package com.salvarez.miboveda.presentation.detail
 
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.v2.createComposeRule
 import androidx.compose.ui.test.onNodeWithText
@@ -17,7 +16,7 @@ class EntryDetailScreenTest {
 
     private fun show(state: EntryDetailState) = composeRule.setContent {
         MiBovedaTheme {
-            EntryDetailScreen(state, SnackbarHostState(), onIntent = {}, onBack = {}, onEdit = {})
+            EntryDetailScreen(state, onIntent = {}, onBack = {}, onEdit = {})
         }
     }
 
