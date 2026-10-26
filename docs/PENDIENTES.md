@@ -13,6 +13,9 @@ Prioridad: **Alta** = afecta al uso normal o a la seguridad · **Media** = convi
 | 21 | Baja | Importar detecta duplicados solo si coinciden todos los campos. Una entrada editada desde la copia se añade como nueva (no se fusiona por fecha). | Paso 16 |
 | 22 | Baja | El selector de importación muestra todos los archivos (`*/*`); no puede filtrar por tipo porque la copia no tiene un tipo MIME propio. | Paso 16 |
 | 23 | Baja | La gracia de 2 minutos del selector de archivos mantiene la bóveda abierta ese tiempo si el usuario se va a otra app durante la elección. Está acotada, pero podría reducirse. | Paso 15 |
+| 24 | Media | Las animaciones continuas (el candado que «respira» y el que flota en la lista vacía) consumen batería mientras la pantalla está abierta. Medir en un teléfono y, si hace falta, pararlas pasados unos segundos. | Paso 17 |
+| 25 | Baja | Los videos del rediseño ocupan ~11 MB en el repositorio (webm del emulador, que ignora casi todo el ajuste de tasa de bits). Se pueden borrar tras revisarlos; quedarán en el historial de git. | Paso 17 |
+| 26 | Baja | Al desbloquear hay ~0,8 s de animación antes de entrar a la lista. Si resulta lenta en uso diario, acortarla o hacerla opcional. | Paso 17 |
 
 ## Pruebas pendientes en un teléfono real
 | # | Prioridad | Qué falta probar | Origen |
@@ -21,7 +24,7 @@ Prioridad: **Alta** = afecta al uso normal o a la seguridad · **Media** = convi
 | 4 | Media | El portapapeles se borra a los 30 s tras copiar (y al bloquear). Android limita leerlo en segundo plano, así que no hay prueba automática. | Paso 10 |
 | 5 | Media | Rotar la pantalla con la bóveda abierta no debe bloquearla. | Paso 11 |
 | 6 | Media | Compilación **release** firmada y ejecutada en un dispositivo: R8 con las librerías nativas (argon2kt y SQLCipher) solo se comprobó revisando el `mapping.txt`, no en ejecución. | Paso 7 |
-| 7 | Baja | Revisión visual de todas las pantallas en modo claro y oscuro con un teléfono real (`FLAG_SECURE` impide capturas, así que solo se comprobó que abren sin errores). | Paso 13 |
+| 7 | Media | Revisión del diseño nuevo en un teléfono real, en claro y oscuro (las capturas vienen de pruebas y del emulador): lectura de textos, tamaño de los toques y fluidez de las animaciones. También con TalkBack, que no se ha probado. | Pasos 13 y 17 |
 
 ## Limitaciones conocidas (decisiones de diseño a revisar)
 | # | Prioridad | Qué | Origen |

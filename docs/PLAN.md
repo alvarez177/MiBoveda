@@ -145,11 +145,9 @@ Actualizar al terminar cada paso. Estados: pendiente / en progreso / hecho.
 | 16 | feature/backup-import | hecho |
 
 ### Rediseño de la interfaz (decidido tras terminar la Fase 2)
-Dirección «Bóveda segura», paleta propia fija, animación rica pero con medida. Detalle en `docs/DESIGN.md`. Cada paso trae capturas (y videos cuando hay animación) en `docs/ui/`.
+Dirección «Bóveda segura», paleta propia fija, animación rica pero con medida. Detalle en `docs/DESIGN.md`. Evidencia (capturas, tiras de animación y videos) en `docs/ui/`.
 
 | # | Rama | Estado |
 |---|---|---|
-| 17 | feature/ui-theme | en progreso |
-| 18 | feature/ui-auth-screens | pendiente |
-| 19 | feature/ui-entries | pendiente |
-| 20 | feature/ui-settings-transitions | pendiente |
+| 17 | feature/ui-theme | en revisión: sistema de diseño + todas las pantallas + animaciones y transiciones |
+| 18–20 | (incluidos en el 17) | La primera versión del 17 solo traía la base visual y se consideró «demasiado plana»; por eso las pantallas, animaciones y transiciones previstas para los pasos 18 a 20 se hicieron dentro del mismo PR |

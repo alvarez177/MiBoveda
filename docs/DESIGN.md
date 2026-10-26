@@ -50,8 +50,42 @@ Rejilla de 4 dp. Márgenes de pantalla 24 dp; separación entre bloques 16 dp; e
 
 Compose ya respeta el ajuste del sistema «Escala de duración de animación»: con valor 0 todas las animaciones se saltan, así que no hace falta comprobarlo a mano.
 
+## Componentes (`presentation/ui`)
+| Componente | Qué hace |
+|---|---|
+| `VaultBackground` | Fondo común: degradado profundo con dos resplandores suaves. Se queda quieto mientras las pantallas se deslizan encima |
+| `LockEmblem` | Emblema de la app: dial de caja fuerte con candado. «Respira» mientras espera, el dial da una vuelta y el candado se abre al desbloquear, y se sacude y se tiñe de rojo ante un error |
+| `VaultButton` / `VaultOutlinedButton` / `VaultTextAction` | Botones: degradado de marca con rebote al pulsar, spinner que sustituye al texto al cargar, contorno turquesa y acción de texto |
+| `VaultTextField` / `PasswordTextField` | Campos tonales con icono; el ojo de contraseña se transforma entre abierto y cerrado; marca verificada animada en la confirmación |
+| `VaultCard` | Panel con borde luminoso (y sombra turquesa suave en modo claro) |
+| `StrengthMeter` | Tres segmentos que se encienden uno a uno y cambian de rojo a ámbar a turquesa, con la etiqueta deslizándose |
+| `Avatar` | Círculo con la inicial sobre un degradado elegido por el título |
+| `SecretText` | Contraseña como puntos, o «descifrándose»: caracteres aleatorios que se asientan de izquierda a derecha |
+| `RecoveryKeyPanel` | Clave tapada por un velo hasta tocarla; se revela con desvanecimiento |
+| `AnimatedCheck` | Círculo que se rellena y marca que se dibuja trazo a trazo |
+| `cascadeEntrance` | Los elementos de un grupo suben y aparecen uno tras otro |
+| `VaultTopBar` / `VaultLargeTopBar` | Barras transparentes; la grande de la lista se contrae al hacer scroll |
+
+## Animaciones
+| Dónde | Qué ocurre | Duración |
+|---|---|---|
+| Desbloqueo correcto | El dial gira, el candado se abre y la pantalla entra en la lista con zoom | ~0,8 s |
+| Contraseña incorrecta | El candado se sacude y se pone rojo; el mensaje de error se despliega | ~0,3 s |
+| Crear bóveda | Medidor de seguridad que se llena, marca verificada al coincidir, pasos que se deslizan, clave que se revela | 0,15–0,45 s |
+| Lista | Tarjetas que entran en cascada; el botón «Añadir» se encoge al bajar y crece al subir | 0,45 s + 55 ms por tarjeta |
+| Detalle | Cascada de bloques; la contraseña se «descifra»; el aviso de copiado sube con su marca y se va solo | 0,4 s / 2,8 s |
+| Ajustes | Tarjetas en cascada; la opción elegida se ilumina y muestra una marca que aparece con rebote; confirmaciones con marca dibujada | 0,3 s |
+| Entre pantallas | Deslizamiento lateral con desvanecimiento; de las pantallas de acceso a la lista, zoom de «abrir la bóveda» | 0,3–0,45 s |
+
+Todo respeta el ajuste del sistema «escala de duración de animación».
+
 ## Cómo ver el diseño sin teléfono
-`ScreenshotsTest` (carpeta `androidTest/.../screenshots`) dibuja cada pantalla con datos de ejemplo en claro y oscuro y guarda las imágenes, sin tocar ninguna bóveda real. Hay que lanzarlo con `adb shell am instrument` (Gradle desinstala la app y sus archivos al terminar):
+Tres tipos de evidencia, todas en `docs/ui/`:
+- **Capturas** (`antes/`, `despues/`): `ScreenshotsTest` dibuja cada pantalla con datos de ejemplo en claro y oscuro, incluidos momentos intermedios de algunas animaciones.
+- **Tiras de animación** (`animaciones/`): `FilmstripsTest` mueve a mano el reloj de animación y dibuja la misma pantalla en varios instantes, con la hora bajo cada cuadro. Son exactas y repetibles.
+- **Videos** (`videos/`, formato webm): grabaciones del emulador con la app real. Se hicieron con una copia local que desactiva `FLAG_SECURE` (si no, Android graba pantalla en negro); esa copia nunca se sube y en la app real las capturas siguen bloqueadas.
+
+Las dos pruebas se lanzan con `adb shell am instrument` (Gradle desinstala la app y sus archivos al terminar):
 
 ```
 ./gradlew installDebug installDebugAndroidTest
@@ -59,13 +93,7 @@ adb shell am instrument -w -e class com.salvarez.miboveda.screenshots.Screenshot
   com.salvarez.miboveda.test/androidx.test.runner.AndroidJUnitRunner
 adb pull /sdcard/Android/data/com.salvarez.miboveda/files/screenshots
 ```
-
-Las imágenes de cada paso viven en `docs/ui/` (carpetas `antes` y `despues`, y una por cada paso siguiente). Los videos de animaciones se graban en el emulador con una copia local que desactiva `FLAG_SECURE`, que nunca se sube: en la app real las capturas de pantalla siguen bloqueadas.
+(`FilmstripsTest` deja sus imágenes en `.../files/filmstrips`.)
 
 ## Hoja de ruta del rediseño
-| Paso | Rama | Qué trae |
-|---|---|---|
-| 17 | `feature/ui-theme` | Sistema de diseño: paleta, tipografía, formas, movimiento, guía y capturas de antes y después |
-| 18 | `feature/ui-auth-screens` | Pantallas de creación, restauración, clave de recuperación, desbloqueo y recuperación: candado animado, medidor de seguridad animado, revelación de la clave |
-| 19 | `feature/ui-entries` | Lista con tarjetas e iniciales, estado vacío ilustrado, entrada escalonada, detalle y formulario rediseñados, aviso animado al copiar |
-| 20 | `feature/ui-settings-transitions` | Ajustes por secciones con iconos, confirmaciones animadas al exportar o importar, transiciones entre pantallas y repaso final |
+El rediseño se planeó en cuatro pasos (17 a 20), pero tras la primera revisión («demasiado plano») se entregó entero en el paso 17: sistema de diseño, todas las pantallas, animaciones y transiciones. Lo que queda es afinar según los comentarios.
