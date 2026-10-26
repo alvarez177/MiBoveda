@@ -34,7 +34,7 @@ class EntryListScreenTest {
             MiBovedaTheme { EntryListScreen(state, onAdd = { added++ }, onEntryClick = { opened += it }, onOpenSettings = {}) }
         }
         composeRule.onNodeWithText("Bank").performClick()
-        composeRule.onNodeWithText("Añadir").performClick()
+        composeRule.onNodeWithText("Añadir", useUnmergedTree = true).performClick()
 
         assertEquals(listOf(7L), opened)
         assertEquals(1, added)

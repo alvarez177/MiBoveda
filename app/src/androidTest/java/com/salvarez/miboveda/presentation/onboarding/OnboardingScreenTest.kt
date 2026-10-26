@@ -49,7 +49,7 @@ class OnboardingScreenTest {
         composeRule.setContent {
             MiBovedaTheme {
                 OnboardingScreen(
-                    state = OnboardingState(recoveryKey = RecoveryKey("ABCD-EFGH-IJKL-MNOP"), isRecoverySaved = saved),
+                    state = OnboardingState(recoveryKey = RecoveryKey("ABCD-EFGH-IJKL-MNOP"), isRecoverySaved = saved, isRecoveryRevealed = true),
                     onIntent = { intents += it },
                 )
             }
@@ -86,5 +86,21 @@ class OnboardingScreenTest {
         composeRule.onNodeWithText("Restaura tu bóveda").assertIsDisplayed()
         composeRule.onNodeWithText("Contraseña maestra de la copia").assertIsDisplayed()
         composeRule.onNodeWithText("Restaurar bóveda").performScrollTo().assertIsDisplayed()
+    }
+
+    @Test
+    fun theRecoveryKeyStartsCoveredAndTappingTheVeilAsksToReveal() {
+        val intents = mutableListOf<OnboardingIntent>()
+        composeRule.setContent {
+            MiBovedaTheme {
+                OnboardingScreen(
+                    state = OnboardingState(recoveryKey = RecoveryKey("ABCD-EFGH-IJKL-MNOP")),
+                    onIntent = { intents += it },
+                )
+            }
+        }
+        composeRule.onNodeWithText("Toca para mostrar tu clave").assertIsDisplayed().performClick()
+
+        assertEquals(listOf<OnboardingIntent>(OnboardingIntent.RevealRecoveryKey), intents)
     }
 }

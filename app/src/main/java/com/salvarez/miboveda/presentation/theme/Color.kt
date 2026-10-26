@@ -1,11 +1,87 @@
 package com.salvarez.miboveda.presentation.theme
 
+import androidx.compose.material3.ColorScheme
+import androidx.compose.material3.darkColorScheme
+import androidx.compose.material3.lightColorScheme
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Palette "bóveda segura": azul noche con acento turquesa. See docs/DESIGN.md.
+// The same identity in both modes; the app never takes its colors from the wallpaper.
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+val VaultDarkColors: ColorScheme = darkColorScheme(
+    primary = Color(0xFF2DD4BF),
+    onPrimary = Color(0xFF02211D),
+    primaryContainer = Color(0xFF0E4A44),
+    onPrimaryContainer = Color(0xFFB8F5EC),
+    secondary = Color(0xFF7AA2F7),
+    onSecondary = Color(0xFF0A1A3A),
+    secondaryContainer = Color(0xFF22365F),
+    onSecondaryContainer = Color(0xFFD3E1FF),
+    tertiary = Color(0xFFF5B84B),
+    onTertiary = Color(0xFF2D1B00),
+    tertiaryContainer = Color(0xFF5A3E00),
+    onTertiaryContainer = Color(0xFFFFE2A8),
+    error = Color(0xFFFF7B7B),
+    onError = Color(0xFF3A0000),
+    errorContainer = Color(0xFF5A1C1C),
+    onErrorContainer = Color(0xFFFFD9D9),
+    background = Color(0xFF0B1220),
+    onBackground = Color(0xFFE6EDF7),
+    surface = Color(0xFF0B1220),
+    onSurface = Color(0xFFE6EDF7),
+    surfaceVariant = Color(0xFF1F2E49),
+    onSurfaceVariant = Color(0xFF9FB0CC),
+    surfaceTint = Color(0xFF2DD4BF),
+    surfaceBright = Color(0xFF1F2E49),
+    surfaceDim = Color(0xFF080D18),
+    surfaceContainerLowest = Color(0xFF080D18),
+    surfaceContainerLow = Color(0xFF0F1829),
+    surfaceContainer = Color(0xFF131E33),
+    surfaceContainerHigh = Color(0xFF19263D),
+    surfaceContainerHighest = Color(0xFF1F2E49),
+    outline = Color(0xFF3A4B6B),
+    outlineVariant = Color(0xFF26354F),
+    inverseSurface = Color(0xFFE6EDF7),
+    inverseOnSurface = Color(0xFF0B1220),
+    inversePrimary = Color(0xFF0F766E),
+    scrim = Color(0xFF000000),
+)
+
+val VaultLightColors: ColorScheme = lightColorScheme(
+    primary = Color(0xFF0F766E),
+    onPrimary = Color(0xFFFFFFFF),
+    primaryContainer = Color(0xFFC9F5EE),
+    onPrimaryContainer = Color(0xFF03302B),
+    secondary = Color(0xFF3456B8),
+    onSecondary = Color(0xFFFFFFFF),
+    secondaryContainer = Color(0xFFDCE6FF),
+    onSecondaryContainer = Color(0xFF0B2159),
+    tertiary = Color(0xFF9A5B00),
+    onTertiary = Color(0xFFFFFFFF),
+    tertiaryContainer = Color(0xFFFFE2B8),
+    onTertiaryContainer = Color(0xFF301B00),
+    error = Color(0xFFB3261E),
+    onError = Color(0xFFFFFFFF),
+    errorContainer = Color(0xFFF9DEDC),
+    onErrorContainer = Color(0xFF410E0B),
+    background = Color(0xFFF3F6FB),
+    onBackground = Color(0xFF0B1220),
+    surface = Color(0xFFF3F6FB),
+    onSurface = Color(0xFF0B1220),
+    surfaceVariant = Color(0xFFE1E9F5),
+    onSurfaceVariant = Color(0xFF44546F),
+    surfaceTint = Color(0xFF0F766E),
+    surfaceBright = Color(0xFFFFFFFF),
+    surfaceDim = Color(0xFFD9E3F2),
+    surfaceContainerLowest = Color(0xFFFFFFFF),
+    surfaceContainerLow = Color(0xFFF7F9FD),
+    surfaceContainer = Color(0xFFE9EFF8),
+    surfaceContainerHigh = Color(0xFFE1E9F5),
+    surfaceContainerHighest = Color(0xFFD9E3F2),
+    outline = Color(0xFF7A8BA8),
+    outlineVariant = Color(0xFFCBD6E6),
+    inverseSurface = Color(0xFF1B2740),
+    inverseOnSurface = Color(0xFFEAF1FB),
+    inversePrimary = Color(0xFF2DD4BF),
+    scrim = Color(0xFF000000),
+)

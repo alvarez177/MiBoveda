@@ -1,23 +1,28 @@
 package com.salvarez.miboveda.presentation.edit
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.rounded.Notes
+import androidx.compose.material.icons.rounded.Badge
+import androidx.compose.material.icons.rounded.Language
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -29,10 +34,15 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.salvarez.miboveda.R
-import com.salvarez.miboveda.presentation.common.BackButton
-import com.salvarez.miboveda.presentation.common.PasswordTextField
 import com.salvarez.miboveda.presentation.common.message
 import com.salvarez.miboveda.presentation.theme.MiBovedaTheme
+import com.salvarez.miboveda.presentation.ui.PasswordTextField
+import com.salvarez.miboveda.presentation.ui.VaultBackground
+import com.salvarez.miboveda.presentation.ui.VaultButton
+import com.salvarez.miboveda.presentation.ui.VaultScaffold
+import com.salvarez.miboveda.presentation.ui.VaultTextField
+import com.salvarez.miboveda.presentation.ui.VaultTopBar
+import com.salvarez.miboveda.presentation.ui.cascadeEntrance
 
 @Composable
 fun EntryEditRoute(
@@ -51,18 +61,17 @@ fun EntryEditRoute(
     EntryEditScreen(state = state, onIntent = viewModel::onIntent, onBack = onBack)
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EntryEditScreen(
     state: EntryEditState,
     onIntent: (EntryEditIntent) -> Unit,
     onBack: () -> Unit,
 ) {
-    Scaffold(
+    VaultScaffold(
         topBar = {
-            TopAppBar(
-                title = { Text(stringResource(if (state.isNew) R.string.new_entry_title else R.string.edit_entry_title)) },
-                navigationIcon = { BackButton(onBack) },
+            VaultTopBar(
+                title = stringResource(if (state.isNew) R.string.new_entry_title else R.string.edit_entry_title),
+                onBack = onBack,
             )
         },
     ) { innerPadding ->
@@ -79,65 +88,70 @@ fun EntryEditScreen(
 @Composable
 private fun Form(state: EntryEditState, onIntent: (EntryEditIntent) -> Unit) {
     Column(
-        modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(24.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState())
+            .padding(horizontal = 24.dp, vertical = 8.dp),
+        verticalArrangement = Arrangement.spacedBy(14.dp),
     ) {
-        OutlinedTextField(
+        VaultTextField(
             value = state.title,
             onValueChange = { onIntent(EntryEditIntent.TitleChanged(it)) },
-            label = { Text(stringResource(R.string.title_label)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
+            label = stringResource(R.string.title_label),
+            leadingIcon = Icons.Rounded.Badge,
+            isError = state.error != null,
+            modifier = Modifier.cascadeEntrance(0),
         )
-        OutlinedTextField(
+        VaultTextField(
             value = state.username,
             onValueChange = { onIntent(EntryEditIntent.UsernameChanged(it)) },
-            label = { Text(stringResource(R.string.username_label)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
+            label = stringResource(R.string.username_label),
+            leadingIcon = Icons.Rounded.Person,
+            modifier = Modifier.cascadeEntrance(1),
         )
         PasswordTextField(
             value = state.password,
             onValueChange = { onIntent(EntryEditIntent.PasswordChanged(it)) },
             label = stringResource(R.string.password_label),
             isVisible = state.isPasswordVisible,
+            onToggleVisibility = { onIntent(EntryEditIntent.TogglePasswordVisibility) },
+            modifier = Modifier.cascadeEntrance(2),
         )
-        TextButton(onClick = { onIntent(EntryEditIntent.TogglePasswordVisibility) }) {
-            Text(stringResource(if (state.isPasswordVisible) R.string.hide_password else R.string.show_password))
-        }
-        OutlinedTextField(
+        VaultTextField(
             value = state.url,
             onValueChange = { onIntent(EntryEditIntent.UrlChanged(it)) },
-            label = { Text(stringResource(R.string.url_label)) },
-            singleLine = true,
-            modifier = Modifier.fillMaxWidth(),
+            label = stringResource(R.string.url_label),
+            leadingIcon = Icons.Rounded.Language,
+            modifier = Modifier.cascadeEntrance(3),
         )
-        OutlinedTextField(
+        VaultTextField(
             value = state.notes,
             onValueChange = { onIntent(EntryEditIntent.NotesChanged(it)) },
-            label = { Text(stringResource(R.string.notes_label)) },
+            label = stringResource(R.string.notes_label),
+            leadingIcon = Icons.AutoMirrored.Rounded.Notes,
+            singleLine = false,
             minLines = 3,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.cascadeEntrance(4),
         )
-        state.error?.let {
-            Text(it.message(), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
-        }
-        Button(
-            onClick = { onIntent(EntryEditIntent.Save) },
-            enabled = !state.isSaving,
-            modifier = Modifier.fillMaxWidth(),
-        ) {
-            if (state.isSaving) {
-                CircularProgressIndicator(modifier = Modifier.size(20.dp))
-            } else {
-                Text(stringResource(R.string.save))
+        AnimatedVisibility(visible = state.error != null, enter = expandVertically() + fadeIn(), exit = shrinkVertically() + fadeOut()) {
+            state.error?.let {
+                Text(it.message(), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodyMedium)
             }
         }
+        Spacer(Modifier.height(4.dp))
+        VaultButton(
+            text = stringResource(R.string.save),
+            onClick = { onIntent(EntryEditIntent.Save) },
+            enabled = !state.isSaving,
+            loading = state.isSaving,
+            modifier = Modifier.fillMaxWidth().cascadeEntrance(5),
+        )
+        Spacer(Modifier.height(16.dp))
     }
 }
 
 @Preview(showBackground = true)
 @Composable
 private fun EntryEditPreview() {
-    MiBovedaTheme { EntryEditScreen(state = EntryEditState(title = "Banco"), onIntent = {}, onBack = {}) }
+    MiBovedaTheme { VaultBackground { EntryEditScreen(state = EntryEditState(title = "Banco"), onIntent = {}, onBack = {}) } }
 }

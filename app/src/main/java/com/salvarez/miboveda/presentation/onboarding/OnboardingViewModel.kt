@@ -40,6 +40,7 @@ class OnboardingViewModel @Inject constructor(
                 _state.update { it.copy(restoreFileUri = uri, password = "", confirmation = "", error = null) }
             }
             OnboardingIntent.CancelRestore -> _state.update { it.copy(restoreFileUri = null, password = "", error = null) }
+            OnboardingIntent.RevealRecoveryKey -> _state.update { it.copy(isRecoveryRevealed = true) }
             OnboardingIntent.CopyRecoveryKey -> _state.value.recoveryKey?.let { clipboard.copy("recovery", it.value) }
             OnboardingIntent.ToggleRecoverySaved -> _state.update { it.copy(isRecoverySaved = !it.isRecoverySaved) }
             OnboardingIntent.ContinueAfterRecovery -> continueAfterRecovery()
