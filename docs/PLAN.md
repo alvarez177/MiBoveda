@@ -131,7 +131,7 @@ Actualizar al terminar cada paso. Estados: pendiente / en progreso / hecho.
 | 2 | feature/toolchain-update | hecho |
 | 3 | feature/app-skeleton | hecho |
 | 4 | feature/domain-core | hecho |
-| 5 | feature/crypto-keys | en progreso |
+| 5 | feature/crypto-keys | hecho |
 | 6 | feature/encrypted-database | hecho |
 | 7 | feature/hardening-manifest | hecho |
 | 8 | feature/create-vault | hecho |
@@ -143,3 +143,13 @@ Actualizar al terminar cada paso. Estados: pendiente / en progreso / hecho.
 | 14 | feature/recovery-key | hecho |
 | 15 | feature/backup-export | hecho |
 | 16 | feature/backup-import | hecho |
+
+### Rediseño de la interfaz (decidido tras terminar la Fase 2)
+Dirección «Bóveda segura», paleta propia fija, animación rica pero con medida. Detalle en `docs/DESIGN.md`. Cada paso trae capturas (y videos cuando hay animación) en `docs/ui/`.
+
+| # | Rama | Estado |
+|---|---|---|
+| 17 | feature/ui-theme | en progreso |
+| 18 | feature/ui-auth-screens | pendiente |
+| 19 | feature/ui-entries | pendiente |
+| 20 | feature/ui-settings-transitions | pendiente |
